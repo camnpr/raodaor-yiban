@@ -24,6 +24,16 @@ export default function MeScreen() {
           <Text style={[styles.hint, { color: theme.textSecondary }]}>
             {t.me.membership} · {t.me.settings} · {t.me.fontSize}
           </Text>
+          <Pressable
+            onPress={() => router.push('/care')}
+            style={({ pressed }) => [
+              styles.row,
+              { borderColor: theme.border, opacity: pressed ? 0.7 : 1 },
+            ]}
+          >
+            <Text style={[styles.rowText, { color: theme.textPrimary }]}>{t.care.title}</Text>
+            <Text style={[styles.rowChevron, { color: theme.textSecondary }]}>›</Text>
+          </Pressable>
           <Button title={t.me.logout} variant="secondary" onPress={logout} block />
         </>
       ) : (
@@ -41,4 +51,14 @@ const styles = StyleSheet.create({
   title: { fontSize: fontSize.title, fontWeight: '700', textAlign: 'center' },
   name: { fontSize: fontSize.heading, fontWeight: '700', textAlign: 'center' },
   hint: { fontSize: fontSize.body, textAlign: 'center' },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: spacing.md,
+  },
+  rowText: { fontSize: fontSize.body, fontWeight: '600' },
+  rowChevron: { fontSize: 22 },
 });

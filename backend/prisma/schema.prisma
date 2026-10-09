@@ -25,6 +25,12 @@ enum CareStatus {
   REJECTED
 }
 
+enum CareInviteStatus {
+  ACTIVE
+  USED
+  EXPIRED
+}
+
 enum CheckoutStatus {
   PENDING
   VERIFIED
@@ -48,6 +54,7 @@ model User {
   alertSubscriptions AlertSubscription[]
   careAsElder        CareRelationship[] @relation("ElderRelations")
   careAsGuardian     CareRelationship[] @relation("GuardianRelations")
+  careInvites        CareInvite[]
 
   @@map("users")
 }
@@ -92,6 +99,21 @@ model CareRelationship {
 
   @@unique([elderUserId, guardianUserId])
   @@map("care_relationships")
+}
+
+/** 亲情绑定邀请：守护人生成邀请码 → 长辈凭码确认建立关系（§6.5） */
+model CareInvite {
+  id             String           @id @default(cuid())
+  code           String           @unique
+  guardianUserId String
+  status         CareInviteStatus @default(ACTIVE)
+  expiresAt      DateTime
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  guardian User @relation(fields: [guardianUserId], references: [id])
+
+  @@map("care_invites")
 }
 
 model FavoriteCity {

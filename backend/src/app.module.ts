@@ -7,6 +7,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { WeatherModule } from './modules/weather/weather.module';
 import { CitiesModule } from './modules/cities/cities.module';
 import { AlertsModule } from './modules/alerts/alerts.module';
+import { CareModule } from './modules/care/care.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { AlertsModule } from './modules/alerts/alerts.module';
     WeatherModule,
     CitiesModule,
     AlertsModule,
+    CareModule,
   ],
 })
 export class AppModule {}

@@ -6,6 +6,8 @@ export interface Dict {
     cancel: string;
     loading: string;
     retry: string;
+    back: string;
+    copy: string;
   };
   tabs: {
     home: string;
@@ -23,6 +25,37 @@ export interface Dict {
   care: {
     title: string;
     empty: string;
+    guardianSection: string;
+    elderSection: string;
+    addElder: string;
+    bindGuardian: string;
+    invite: string;
+    generateCode: string;
+    enterCode: string;
+    codePlaceholder: string;
+    accept: string;
+    inviteHintGuardian: string;
+    inviteHintElder: string;
+    codeCopied: string;
+    codeExpired: string;
+    bindingSuccess: string;
+    invalidCode: string;
+    alreadyBound: string;
+    noElders: string;
+    noGuardians: string;
+    unbind: string;
+    unbindConfirm: string;
+    noCity: string;
+    alertBadge: string;
+    qrTitle: string;
+    qrHint: string;
+  };
+  guard: {
+    title: string;
+    noCity: string;
+    loading: string;
+    unbindConfirm: string;
+    unbindDone: string;
   };
   me: {
     title: string;
@@ -83,6 +116,8 @@ const zhCN: Dict = {
     cancel: '取消',
     loading: '加载中…',
     retry: '重试',
+    back: '返回',
+    copy: '复制',
   },
   tabs: {
     home: '天气',
@@ -100,6 +135,37 @@ const zhCN: Dict = {
   care: {
     title: '亲情守护',
     empty: '还没有绑定家人，登录后可添加守护',
+    guardianSection: '我守护的长辈',
+    elderSection: '守护我的家人',
+    addElder: '添加长辈',
+    bindGuardian: '绑定守护人',
+    invite: '亲情绑定',
+    generateCode: '生成邀请码',
+    enterCode: '输入邀请码',
+    codePlaceholder: '请输入 8 位邀请码',
+    accept: '确认绑定',
+    inviteHintGuardian: '把邀请码发给父母，父母输入后即可互相守护',
+    inviteHintElder: '输入子女分享给你的邀请码，完成亲情绑定',
+    codeCopied: '邀请码已复制',
+    codeExpired: '邀请码已过期，请重新生成',
+    bindingSuccess: '绑定成功',
+    invalidCode: '邀请码无效或已失效',
+    alreadyBound: '已与该家人建立守护关系',
+    noElders: '还没有守护的长辈',
+    noGuardians: '还没有守护你的家人',
+    unbind: '解除守护',
+    unbindConfirm: '确定解除这段守护关系吗？',
+    noCity: '长辈尚未设置城市',
+    alertBadge: '预警',
+    qrTitle: '扫码绑定',
+    qrHint: '让家人用手机扫描二维码，自动进入绑定页并完成亲情守护',
+  },
+  guard: {
+    title: '长辈天气守护',
+    noCity: '长辈尚未设置守护城市',
+    loading: '加载中…',
+    unbindConfirm: '确定解除守护关系吗？',
+    unbindDone: '已解除守护',
   },
   me: {
     title: '我的',

@@ -39,6 +39,11 @@ export interface AppConfig {
     /** 应用入站密钥（rdae_ 前缀，message 开放平台签发；仅服务端持有） */
     inboundKey: string;
   };
+  /** 极端天气预警巡检（M3 亲情守护推送） */
+  alert: {
+    /** 巡检周期（秒），默认 300（5 分钟） */
+    inspectIntervalSeconds: number;
+  };
   file: { baseUrl: string; apiKey: string };
   docs: { baseUrl: string; orgKey: string };
   weather: {
@@ -78,6 +83,9 @@ export default (): AppConfig => ({
   message: {
     baseUrl: (process.env.RAODAOR_MESSAGE_BASE_URL ?? 'https://message.raodaor.com').replace(/\/+$/, ''),
     inboundKey: process.env.RAODAOR_MESSAGE_INBOUND_KEY ?? '',
+  },
+  alert: {
+    inspectIntervalSeconds: toNumber(process.env.ALERT_INSPECT_INTERVAL_SECONDS) || 300,
   },
   file: {
     baseUrl: process.env.RAODAOR_FILE_BASE_URL ?? '',

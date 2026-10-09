@@ -39,6 +39,8 @@ export default function RootLayout() {
         <Stack.Screen name="login" />
         <Stack.Screen name="auth/callback" />
         <Stack.Screen name="cities" />
+        <Stack.Screen name="care/invite" />
+        <Stack.Screen name="guard/[elderId]" />
       </Stack>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
     </SafeAreaProvider>
