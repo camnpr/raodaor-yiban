@@ -173,6 +173,7 @@ const styles = StyleSheet.create({
   searchBtnText: { color: '#FFFFFF', fontSize: fontSize.body, fontWeight: '700' },
   searching: { marginVertical: spacing.md },
   results: { gap: 0 },
+  list: { gap: spacing.sm },
   resultRow: {
     flexDirection: 'row',
     alignItems: 'center',

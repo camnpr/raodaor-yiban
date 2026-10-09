@@ -101,7 +101,7 @@ model CareRelationship {
   @@map("care_relationships")
 }
 
-/** 亲情绑定邀请：守护人生成邀请码 → 长辈凭码确认建立关系（§6.5） */
+// 亲情绑定邀请：守护人生成邀请码 → 长辈凭码确认建立关系（§6.5）
 model CareInvite {
   id             String           @id @default(cuid())
   code           String           @unique

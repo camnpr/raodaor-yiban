@@ -7,5 +7,5 @@ export class AcceptInviteDto {
   @IsNotEmpty()
   @Length(6, 24)
   @Matches(/^[A-Za-z0-9]+$/, { message: '邀请码格式非法' })
-  code: string;
+  code!: string;
 }
