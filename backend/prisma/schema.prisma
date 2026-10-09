@@ -190,7 +190,8 @@ model CheckoutSession {
 model MembershipBenefit {
   id                   String  @id @default(cuid())
   tierCode             String  @unique
-  cityLimit            Int     @default(3)
+  // 城市收藏上限；null = 不限（尊享会员）
+  cityLimit            Int?    @default(3)
   careLimit            Int     @default(1)
   timedBroadcast       Boolean @default(false)
   advancedWidget       Boolean @default(false)

@@ -37,6 +37,8 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => <Ionicons name="person" color={color} size={size} />,
         }}
       />
+      {/* `/` 重定向垫片：保留路由（避免 404）但从 tab 栏隐藏，否则会显示成 “Index” */}
+      <Tabs.Screen name="index" options={{ href: null }} />
     </Tabs>
   );
 }

@@ -3,19 +3,18 @@ import { useTheme } from '../../design/theme';
 import { fontSize, radius, spacing } from '../../design/tokens';
 import { useT } from '../../i18n';
 import { weatherEmoji } from '../../lib/weather-format';
-import type { AirQuality, WeatherNow } from '../../lib/weather-api';
+import type { WeatherNow } from '../../lib/weather-api';
 import { Button } from '../ui/button';
 
 interface Props {
   cityName: string;
   now: WeatherNow;
-  aqi: AirQuality | null;
   onSpeak: () => void;
   speaking: boolean;
 }
 
-/** 大字实时天气卡（FR-W1：温度大字、口语化、语音播报） */
-export function WeatherNowCard({ cityName, now, aqi, onSpeak, speaking }: Props) {
+/** 大字实时天气卡（FR-W1：温度大字、口语化、语音播报；空气质量为独立模块，见 AqiCard） */
+export function WeatherNowCard({ cityName, now, onSpeak, speaking }: Props) {
   const theme = useTheme();
   const t = useT();
 
@@ -30,12 +29,6 @@ export function WeatherNowCard({ cityName, now, aqi, onSpeak, speaking }: Props)
       <Text style={[styles.text, { color: theme.textPrimary }]}>
         {now.text} · {t.weather.feelsLike} {now.feelsLike}°
       </Text>
-
-      {aqi ? (
-        <Text style={[styles.aqi, { color: theme.textSecondary }]}>
-          {t.weather.aqi} {aqi.category}（AQI {aqi.aqi}）
-        </Text>
-      ) : null}
 
       <View style={styles.details}>
         <Text style={[styles.detail, { color: theme.textSecondary }]}>

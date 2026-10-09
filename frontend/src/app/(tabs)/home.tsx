@@ -1,5 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../design/theme';
 import { fontSize, spacing } from '../../design/tokens';
@@ -22,18 +30,13 @@ import {
 } from '../../lib/weather-api';
 import { AlertBanner } from '../../components/weather/alert-banner';
 import { WeatherNowCard } from '../../components/weather/weather-now-card';
+import { AqiCard } from '../../components/weather/aqi-card';
 import { HourlyStrip } from '../../components/weather/hourly-strip';
 import { DailyList } from '../../components/weather/daily-list';
+import { AsyncSection } from '../../components/common/async-section';
+import { useResource } from '../../hooks/use-resource';
 
-interface WeatherBundle {
-  now: WeatherNow;
-  hourly: HourlyItem[];
-  daily: DailyItem[];
-  alerts: WeatherAlert[];
-  aqi: AirQuality | null;
-}
-
-/** 天气首页（M2 核心）：大字实时 + 预警 + 逐小时 + 15 天 + 语音播报 */
+/** 天气首页（M2 核心）：各子模块独立加载/错误/重试，单模块失败不阻塞整页 */
 export default function HomeScreen() {
   const theme = useTheme();
   const t = useT();
@@ -44,11 +47,8 @@ export default function HomeScreen() {
   const loadCities = useWeatherStore((s) => s.loadCities);
   const setCurrentCity = useWeatherStore((s) => s.setCurrentCity);
 
-  const [bundle, setBundle] = useState<WeatherBundle | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [speaking, setSpeaking] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
 
   // 初始化当前城市：登录优先收藏默认城市，无则定位；游客走定位
   useEffect(() => {
@@ -67,52 +67,56 @@ export default function HomeScreen() {
     })();
   }, [session, loadCities, setCurrentCity]);
 
-  // 拉取天气（当前城市或重试变化时）
+  const lon = currentCity?.lon;
+  const lat = currentCity?.lat;
+  const ready = lon != null && lat != null;
+
+  // 每个子模块独立的数据源（互相隔离；单个失败仅该模块显示错误 + 重试）
+  const now = useResource<WeatherNow>(() => fetchWeatherNow(lon!, lat!), [lon, lat], ready);
+  const alerts = useResource<WeatherAlert[]>(() => fetchAlerts(lon!, lat!), [lon, lat], ready);
+  const aqi = useResource<AirQuality | null>(() => fetchAirQuality(lon!, lat!), [lon, lat], ready);
+  const hourly = useResource<HourlyItem[]>(() => fetchHourly(lon!, lat!), [lon, lat], ready);
+  const daily = useResource<DailyItem[]>(() => fetchDaily(lon!, lat!), [lon, lat], ready);
+
+  const resources = useMemo(() => [now, alerts, aqi, hourly, daily], [now, alerts, aqi, hourly, daily]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    resources.forEach((r) => r.reload());
+  }, [resources]);
+
+  // 所有模块都结束加载后，收起下拉刷新指示器
   useEffect(() => {
-    if (!currentCity) return;
-    let cancelled = false;
-    void (async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const [now, hourly, daily, alerts, aqi] = await Promise.all([
-          fetchWeatherNow(currentCity.lon, currentCity.lat),
-          fetchHourly(currentCity.lon, currentCity.lat),
-          fetchDaily(currentCity.lon, currentCity.lat),
-          fetchAlerts(currentCity.lon, currentCity.lat),
-          fetchAirQuality(currentCity.lon, currentCity.lat),
-        ]);
-        if (!cancelled) setBundle({ now, hourly, daily, alerts, aqi });
-      } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : t.home.loadFailed);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [currentCity, refreshKey, t.home.loadFailed]);
+    if (refreshing && !resources.some((r) => r.loading)) setRefreshing(false);
+  }, [refreshing, resources]);
 
   const onSpeak = useCallback(() => {
-    if (!bundle || !currentCity) return;
+    if (!now.data || !currentCity) return;
     stopSpeaking();
     setSpeaking(true);
-    const alertText = bundle.alerts.length
-      ? `，有${bundle.alerts.length}条天气预警，请注意防范`
+    const alertText = now.data && alerts.data?.length
+      ? `，有${alerts.data.length}条天气预警，请注意防范`
       : '';
     const text =
-      `${currentCity.name}，当前${bundle.now.text}，气温${bundle.now.temp}度，` +
-      `体感${bundle.now.feelsLike}度，湿度百分之${bundle.now.humidity}，` +
-      `${bundle.now.windDir}${bundle.now.windScale}级${alertText}。`;
+      `${currentCity.name}，当前${now.data.text}，气温${now.data.temp}度，` +
+      `体感${now.data.feelsLike}度，湿度百分之${now.data.humidity}，` +
+      `${now.data.windDir}${now.data.windScale}级${alertText}。`;
     speakText(text, locale);
     setTimeout(() => setSpeaking(false), 1500);
-  }, [bundle, currentCity, locale]);
+  }, [now.data, alerts.data, currentCity, locale]);
 
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: theme.background }]}
       contentContainerStyle={styles.content}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={theme.brand}
+          colors={[theme.brand]}
+        />
+      }
     >
       <View style={styles.header}>
         <Text style={[styles.cityName, { color: theme.textPrimary }]}>
@@ -135,32 +139,38 @@ export default function HomeScreen() {
             <Text style={[styles.link, { color: theme.brand }]}>{t.weather.selectCity}</Text>
           </Pressable>
         </View>
-      ) : loading && !bundle ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={theme.brand} />
-          <Text style={[styles.centerText, { color: theme.textSecondary }]}>{t.common.loading}</Text>
-        </View>
-      ) : error && !bundle ? (
-        <View style={styles.center}>
-          <Text style={[styles.centerText, { color: theme.textSecondary }]}>{error}</Text>
-          <Pressable onPress={() => setRefreshKey((k) => k + 1)} hitSlop={12}>
-            <Text style={[styles.link, { color: theme.brand }]}>{t.common.retry}</Text>
-          </Pressable>
-        </View>
-      ) : bundle ? (
+      ) : (
         <>
-          <AlertBanner alerts={bundle.alerts} />
-          <WeatherNowCard
-            cityName={currentCity?.name ?? ''}
-            now={bundle.now}
-            aqi={bundle.aqi}
-            onSpeak={onSpeak}
-            speaking={speaking}
-          />
-          <HourlyStrip hourly={bundle.hourly} />
-          <DailyList daily={bundle.daily} />
+          {/* 预警：无预警时整块消失（minHeight=0），失败时仅本块显示重试 */}
+          <AsyncSection resource={alerts} minHeight={0}>
+            {(list) => <AlertBanner alerts={list} />}
+          </AsyncSection>
+
+          <AsyncSection resource={now}>
+            {(d) => (
+              <WeatherNowCard
+                cityName={currentCity.name}
+                now={d}
+                onSpeak={onSpeak}
+                speaking={speaking}
+              />
+            )}
+          </AsyncSection>
+
+          {/* 空气质量：数据源合法返回 null（该地区无 AQI）也视为“已加载”，交给渲染决定 */}
+          <AsyncSection resource={aqi} minHeight={0} emptyIsData>
+            {(d) => (d ? <AqiCard aqi={d} /> : null)}
+          </AsyncSection>
+
+          <AsyncSection resource={hourly} minHeight={120}>
+            {(list) => <HourlyStrip hourly={list} />}
+          </AsyncSection>
+
+          <AsyncSection resource={daily} minHeight={200}>
+            {(list) => <DailyList daily={list} />}
+          </AsyncSection>
         </>
-      ) : null}
+      )}
     </ScrollView>
   );
 }
