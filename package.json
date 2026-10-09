@@ -1,0 +1,21 @@
+{
+  "name": "raodaor-yiban",
+  "version": "0.1.0",
+  "private": true,
+  "description": "绕道儿颐伴（Raodaor Yiban）monorepo：frontend（Expo 57 三端）+ backend（NestJS 9015）",
+  "packageManager": "pnpm@11.0.9",
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:frontend": "pnpm --filter @raodaor/yiban-frontend dev",
+    "dev:backend": "pnpm --filter @raodaor/yiban-backend dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "prisma:migrate": "turbo run prisma:migrate --filter=@raodaor/yiban-backend",
+    "prisma:generate": "turbo run prisma:generate --filter=@raodaor/yiban-backend",
+    "prisma:studio": "turbo run prisma:studio --filter=@raodaor/yiban-backend",
+    "sync:docs:sdk+rules": "npx github:camnpr/raodaor-assistant#main sync"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0"
+  }
+}

@@ -1,0 +1,192 @@
+// 绕道儿颐伴（Raodaor Yiban）数据模型
+// 依据 PRD §6.5：字段 camelCase，表名 snake_case（@@map）
+// 约定：金额一律字符串存储；token/secret 一律不入库明文；天气数据不落库（实时拉取 + TTL 缓存）
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- 枚举 ----------
+
+enum DevicePlatform {
+  IOS
+  ANDROID
+  WEB
+}
+
+enum CareStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+}
+
+enum CheckoutStatus {
+  PENDING
+  VERIFIED
+  FAILED
+}
+
+// ---------- 模型 ----------
+
+model User {
+  id            String    @id @default(cuid())
+  idstackUserId String    @unique
+  displayName   String
+  avatarFileId  String?
+  locale        String    @default("zh-CN")
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  elderProfile       ElderProfile?
+  favoriteCities     FavoriteCity[]
+  alertSubscriptions AlertSubscription[]
+  careAsElder        CareRelationship[] @relation("ElderRelations")
+  careAsGuardian     CareRelationship[] @relation("GuardianRelations")
+
+  @@map("users")
+}
+
+model Device {
+  id        String         @id @default(cuid())
+  deviceId  String         @unique
+  platform  DevicePlatform
+  userId    String?
+  createdAt DateTime       @default(now())
+
+  @@map("devices")
+}
+
+model ElderProfile {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  birthYear Int?
+  cityId    String?
+  cityName  String?
+  note      String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("elder_profiles")
+}
+
+model CareRelationship {
+  id             String     @id @default(cuid())
+  elderUserId    String
+  guardianUserId String
+  status         CareStatus @default(PENDING)
+  invitedAt      DateTime   @default(now())
+  acceptedAt     DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  elder    User @relation("ElderRelations", fields: [elderUserId], references: [id])
+  guardian User @relation("GuardianRelations", fields: [guardianUserId], references: [id])
+
+  @@unique([elderUserId, guardianUserId])
+  @@map("care_relationships")
+}
+
+model FavoriteCity {
+  id        String   @id @default(cuid())
+  userId    String
+  cityId    String
+  name      String
+  adminDiv  String?
+  lat       Float?
+  lng       Float?
+  isDefault Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, cityId])
+  @@map("favorite_cities")
+}
+
+model AlertSubscription {
+  id         String   @id @default(cuid())
+  userId     String
+  cityId     String?
+  minLevel   String?
+  quietStart String?
+  quietEnd   String?
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("alert_subscriptions")
+}
+
+model WeatherAlertRecord {
+  id        String    @id @default(cuid())
+  alertId   String
+  cityId    String
+  type      String
+  level     String
+  title     String
+  content   String?
+  source    String
+  startedAt DateTime?
+  endedAt   DateTime?
+  pushedAt  DateTime?
+  createdAt DateTime  @default(now())
+
+  @@unique([alertId, cityId])
+  @@map("weather_alert_records")
+}
+
+model CheckoutSession {
+  id              String         @id @default(cuid())
+  externalOrderId String         @unique
+  subjectType     String
+  subjectId       String
+  targetPlan      String?
+  amount          String
+  currency        String         @default("CNY")
+  status          CheckoutStatus @default(PENDING)
+  idstackOrderId  String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@map("checkout_sessions")
+}
+
+model MembershipBenefit {
+  id                   String  @id @default(cuid())
+  tierCode             String  @unique
+  cityLimit            Int     @default(3)
+  careLimit            Int     @default(1)
+  timedBroadcast       Boolean @default(false)
+  advancedWidget       Boolean @default(false)
+  dailyBrief           Boolean @default(false)
+  healthReport         Boolean @default(false)
+  emergencyContactLimit Int    @default(1)
+  aiCompanionQuota     Int     @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("membership_benefits")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  action     String
+  targetType String?
+  targetId   String?
+  detail     String?
+  createdAt  DateTime @default(now())
+
+  @@map("audit_logs")
+}

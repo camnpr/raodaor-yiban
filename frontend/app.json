@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "绕道儿颐伴",
+    "slug": "raodaor-yiban",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "raodaoryiban",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "com.raodaor.yiban"
+    },
+    "android": {
+      "package": "com.raodaor.yiban",
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-image",
+      "expo-localization",
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-splash-screen"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

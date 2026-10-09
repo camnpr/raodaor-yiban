@@ -6,7 +6,7 @@
 | 产品形态 | 独立 APP（iOS / Android）+ Web 门户与运营后台 |
 | 前端域名 | https://yiban.raodaor.com |
 | 后端服务 | NestJS，端口 9015 |
-| 前端开发端口 | Expo Dev Server，端口 5115 |
+| 前端开发端口 | Expo Dev Server，端口 5115（`expo start --port 5115`） |
 | 数据库 | PostgreSQL 14（Prisma） |
 | 文档版本 | v1.0 |
 | 编写日期 | 2026-10-09 |
@@ -134,11 +134,11 @@
 (tabs)/care        亲情守护：长辈端「我的家人」；子女端「守护中心」（绑定长辈城市天气摘要 + 预警入口）
 (tabs)/me          我的：会员、设置（字体大小/护眼/语言切换）、隐私政策、账号注销
   ├─ /membership   会员中心（权益说明 + 套餐购买）
-  ├─ /settings     语言、字体、护眼、个性化推荐开关、注销
+  ├─ /settings     语言、字体、护眼、注销
   └─ /cities       城市管理（收藏、搜索添加、设为默认）
 /care/invite       亲情绑定（二维码 / 邀请码确认）
 /guard/[elderId]   子女端：某位长辈详情（城市天气 + 预警 + 每日简报入口）
-/ad/...            深链落地（如分享长辈天气卡片）
+/share/[elderId]   （P2）长辈天气卡片分享落地页（公开）
 ```
 
 **Web 端（https://yiban.raodaor.com，同一 Expo Router 路由树的 Web 分支）**
@@ -467,7 +467,7 @@ raodaor-yiban/
 | 端口 | 9015（与生态不冲突：IDStack 9005、File 9001、Docs 9010、ad 9011、message 9012、POS 9013、QA 9014） |
 | 天气巡检 | 进程内定时任务（`@nestjs/schedule`）+ 数据库乐观锁（沿用生态无 Redis 方案，兼容目标部署环境）；预警命中触发推送 |
 | 天气缓存 | 服务端内存/短期 TTL 缓存（实时 10min、逐小时 30min、逐天 2h、预警 5min），应对 provider 限流与降级 |
-| 鉴权 | ① 用户态：本平台 JWT（SSO 换发，15 分钟 + refresh）② Webhook：IDStack RS256 验签 ③ 服务端：message 入站密钥 / file·docs X-API-Key ④ 设备态：匿名设备注册 |
+| 鉴权 | ① 用户态：本平台 JWT（SSO 换发，15 分钟 + refresh）② 公开态：天气读取免登录（`@Public` + 全局限流）③ Webhook：IDStack RS256 验签 ④ 服务端：message 入站密钥 / file·docs X-API-Key |
 | 错误码 | 沿用生态 `{ code, data, message }` 结构与分段错误码（附录 B） |
 
 ### 6.4 天气数据源与 Provider 抽象（生产方案，非临时）
@@ -486,7 +486,7 @@ raodaor-yiban/
 | 表 | 关键字段 |
 |----|---------|
 | User | id, idstackUserId(unique), displayName, avatarFileId?, locale, status, deletedAt（注销软删） |
-| Device | id, deviceId(unique), platform(ios/android/web), userId?, pushToken? |
+| Device | id, deviceId(unique), platform(ios/android/web), userId?（推送令牌由 raodaor-message 承接，不入本库） |
 | CareRelationship | id, elderUserId, guardianUserId, status(pending/active/rejected), invitedAt, acceptedAt（双向绑定，含唯一约束防重复） |
 | ElderProfile | id, userId(unique), birthYear?, cityId?, cityName?, note?（长辈轻量档案） |
 | FavoriteCity | id, userId, cityId, name, adminDiv, lat, lng, isDefault, sortOrder |
@@ -515,7 +515,7 @@ raodaor-yiban/
 
 | 分组 | 端点 | 鉴权 |
 |------|------|------|
-| 天气 | `GET /api/v1/weather/now` · `/weather/hourly` · `/weather/daily` · `/weather/alerts` · `/weather/air-quality` · `/weather/search-city` | JWT |
+| 天气 | `GET /api/v1/weather/now` · `/weather/hourly` · `/weather/daily` · `/weather/alerts` · `/weather/air-quality` · `/weather/search-city` | 公开（游客可浏览 + 全局限流） |
 | 城市 | `GET/POST/DELETE /api/v1/cities` · `PATCH /api/v1/cities/:id/default` | JWT |
 | 预警订阅 | `GET/PUT /api/v1/alerts/subscription` | JWT |
 | 亲情守护 | `GET /api/v1/care/relationships` · `POST /api/v1/care/invite` · `POST /api/v1/care/accept` · `DELETE /api/v1/care/:id` · `GET /api/v1/care/elders` · `GET /api/v1/care/elders/:id/weather` | JWT |
@@ -555,7 +555,7 @@ DATABASE_URL=postgresql://user:pass@localhost:5432/raodaor_yiban?schema=public
 JWT_ACCESS_SECRET=<本平台 JWT 密钥>
 JWT_ACCESS_TTL=15m
 JWT_REFRESH_TTL=7d
-CORS_ALLOW_ORIGINS=http://localhost:8081,http://localhost:19006
+CORS_ALLOW_ORIGINS=http://localhost:5115
 
 # IDStack（仅服务端）
 IDSTACK_BASE_URL=https://idstack.raodaor.com
@@ -578,7 +578,7 @@ RAODAOR_DOCS_ORG_KEY=rdorg_xxx
 
 # 天气数据源（QWeather）
 QWEATHER_API_HOST=https://api.qweather.com
-QWEATHER_API_KEY=<生产 key>
+QWEATHER_API_KEY=<开发 key>
 WEATHER_CACHE_TTL_NOW=600
 WEATHER_CACHE_TTL_HOURLY=1800
 WEATHER_CACHE_TTL_DAILY=7200

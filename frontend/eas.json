@@ -1,0 +1,64 @@
+{
+  "cli": {
+    "version": ">= 16.19.3"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "NODE_ENV": "production"
+      }
+    },
+    "apkInstall": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "resourceClass": "m1-medium",
+        "simulator": false
+      },
+      "env": {
+        "NODE_ENV": "production",
+        "EXPO_PUBLIC_API_BASE_URL": "https://yiban.raodaor.com/api/v1",
+        "EXPO_PUBLIC_SITE_URL": "https://yiban.raodaor.com",
+        "EXPO_PUBLIC_IDSTACK_BASE_URL": "https://idstack.raodaor.com",
+        "EXPO_PUBLIC_IDSTACK_APP_ID": "",
+        "EXPO_PUBLIC_MESSAGE_API_BASE_URL": "https://message.raodaor.com",
+        "EXPO_PUBLIC_DEFAULT_LOCALE": "zh-CN"
+      }
+    },
+    "production": {
+      "distribution": "store",
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "ios": {
+        "resourceClass": "m1-medium",
+        "simulator": false
+      },
+      "env": {
+        "NODE_ENV": "production",
+        "EXPO_PUBLIC_API_BASE_URL": "https://yiban.raodaor.com/api/v1",
+        "EXPO_PUBLIC_SITE_URL": "https://yiban.raodaor.com",
+        "EXPO_PUBLIC_IDSTACK_BASE_URL": "https://idstack.raodaor.com",
+        "EXPO_PUBLIC_IDSTACK_APP_ID": "",
+        "EXPO_PUBLIC_MESSAGE_API_BASE_URL": "https://message.raodaor.com",
+        "EXPO_PUBLIC_DEFAULT_LOCALE": "zh-CN"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
