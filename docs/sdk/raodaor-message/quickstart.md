@@ -2,7 +2,7 @@
 
 # RaoDaor Message 接入清单（Quickstart）
 
-> 按场景勾选。前置项（§0）为所有场景共用；凭证签发详情见同目录 `developer-platform.md`，详细协议见 `overview.md`。
+> 按场景勾选。前置项（§0）为所有场景共用；凭证签发详情见同目录 `developer-platform.md`，详细协议见 `overview.md`，IM 完整协议见 `im-integration.md`。
 
 ## 0. 前置约定（所有场景必做）
 
@@ -26,32 +26,44 @@
 - [ ] 前端用 IDStack access_token 调 `POST /auth/idstack/exchange` 换 message token
 - [ ] 嵌入 `<rdm-notification-center app-id="..." >` 并注入 `token`（**message accessToken，非 IDStack token**）；或自渲染（`GET /notifications`、`GET /notifications/unread`、`POST /notifications/:id/read`）
 
-## 2. 服务号消息（Open API）
+## 2. IM 双聊（会话 / 消息 / 关系链）
+
+- [ ] 换 message token 后缓存 `data.user.id`（**message 域 `User.id`**）；只有 IDStack 主键时调 `POST /users/resolve` 批量解析，推荐自缓存 `idstackUserId → User.id`
+- [ ] 建单聊：`POST /conversations { type:'single', targetUserId }`（幂等；对端用 `User.id`）
+- [ ] 首屏历史 `GET /conversations/:cid/messages?limit=30`；**翻页用 `beforeSeq`、断线补齐用 `afterSeq`**（seq 游标，非 page/offset）
+- [ ] 发送必带 **`clientMsgId`**（≤64 字符，幂等去重；弱网重试/重连补发保持同值）
+- [ ] 已读上报 `POST /conversations/:cid/read { lastReadSeq }`（**会话级游标**，无单条已读；未读 = `lastSeq − lastReadSeq`）
+- [ ] 实时：Socket.IO `path:'/ws'` + `auth:{ token }`，订阅 **`message.created`**（不是 `chat:message`）；token 15m 过期用 `POST /auth/refresh` 旋转刷新后重连
+- [ ] 撤回限 **2 分钟**（超时 `2003`）；发送限流 **30 条/分钟**（超限 `7001`）
+- [ ] 好友/黑名单走 `/relations/*`；发消息前确认未被黑名单（`2107`）与私信门槛（`2108`）拦截
+- [ ] 合规场景（校园/未成年人）配置 pre-send 钩子（见 §7 与 `pre-send-hook-example.md`）
+
+## 3. 服务号消息（Open API）
 
 - [ ] 应用入驻：`POST /admin/apps`（带 `scopes`）→ 等待审批 `approved`（未通过签发凭证会失败）
 - [ ] 签发 API Key：`POST /open/api-keys`（`rdmapp_` 开头，明文仅展示一次，仅服务端持有）
 - [ ] 用户订阅（`AppSubscription`）——B 级营销未订阅会被 `6001` 拒绝
 - [ ] 下发：`POST /open/messages/send`（`X-API-Key`），`level: "B"`，`link` 走 deep link 或白名单域名
 
-## 3. 网页客服悬浮窗
+## 4. 网页客服悬浮窗
 
 - [ ] 页面引入 `<script src="https://message.raodaor.com/embed/widget.js" data-app-id="YOUR_APP_ID" async></script>`（一行接入）
 - [ ] 访客匿名会话自动签发 visitorToken；登录后调 `POST /widget/claim` 合并身份
 - [ ] 坐席在 message 工作台接待；进线/分配/关闭可订阅 Webhook 事件（`cs.session.*`）
 
-## 4. App 推送
+## 5. App 推送
 
 - [ ] 客户端注册设备：`POST /push/devices`（`Authorization: Bearer <message token>`，`platform: web|ios|android|h5`，token 为 Expo/FCM/APNs 设备令牌）
 - [ ] 推送由 message 在通知/消息投递时自动触发，无需自行调用推送网关
 
-## 5. Webhook 订阅（事件出站，同步业务系统）
+## 6. Webhook 订阅（事件出站，同步业务系统）
 
 - [ ] 登记：`POST /open/webhooks`（`appId` + `url` + `events`），保存返回的 `secret`（明文仅一次）
 - [ ] 回调端点实现**验签**：`X-RDM-Signature: sha256=<HMAC-SHA256(rawBody, secret)>`，不匹配返回 401
 - [ ] 用 `X-RDM-EventId` 去重幂等（至少一次投递，非 2xx 按 1m/5m/30m/2h/6h 重试 5 次）
 - [ ] 仅订阅必要事件（如 `user.unsubscribed` → 取消营销；`message.created` → 机器人接力）；事件目录见 `developer-platform.md` §6
 
-## 6. 发送前合规钩子（可选，IM 合规插桩）
+## 7. 发送前合规钩子（可选，IM 合规插桩）
 
 - [ ] 业务方实现回调端点：接收 `{ conversationId, senderId, idstackUserId, type, content, organizationId }`，返回 `{ allow, reason? }`
 - [ ] message 侧配置（组织级）：`PUT /cs/pre-send-hook?organizationId=...`（`url` / `timeoutMs` / `failClosed`）

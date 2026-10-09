@@ -12,6 +12,7 @@
 | 文档 | 说明 |
 |---|---|
 | [overview.md](./overview.md) | 接入指南（本页）：身份模型、鉴权通道、四类接入场景与完整示例 |
+| [im-integration.md](./im-integration.md) | **IM 双聊接入**：会话 / 消息（seq 游标 + 幂等键）/ 关系链 / WebSocket 事件 / 身份映射 |
 | [developer-platform.md](./developer-platform.md) | **开放平台（开发者平台）接入**：入驻审批 + 三类凭证（API Key / 入站通知密钥 / Webhook）获取与对接示例 |
 | [platform-architecture.md](./platform-architecture.md) | 平台化架构：通用核心 + 4 扩展点、角色模型、分阶段落地路线 |
 | [pre-send-hook-example.md](./pre-send-hook-example.md) | 发送前拦截钩子接入示例：CampusHeroSaga 家长审核 / 时段限制等合规回调 |
@@ -129,7 +130,22 @@ Content-Type: application/json
 
 > 或在自有 APP/Web 里直接调用户接口自渲染：`GET /notifications`（列表）、`GET /notifications/unread`（未读角标）、`POST /notifications/:id/read`（已读）。
 
-### 4.2 服务号消息（Open API）
+### 4.2 IM 双聊（会话 / 消息 / 好友）
+
+把自研私信或好友体系迁到 message 时的完整协议，见 **[im-integration.md](./im-integration.md)**。
+
+要点速览：
+
+- **会话**：`POST /conversations { type:'single', targetUserId }`（幂等）、`GET /conversations?page&limit`
+- **消息**：`GET/POST /conversations/:cid/messages`；**seq 游标分页**（`beforeSeq` 翻页 / `afterSeq` 断线补齐）
+- **发送幂等**：**必带 `clientMsgId`**（≤64 字符）——同一会话内同值只落库一次，消除弱网重试 / 重连补发的重复消息
+- **已读**：会话级游标 `POST /conversations/:cid/read { lastReadSeq }`（**无单条 readAt**）
+- **撤回**：`POST /messages/:id/recall`（**2 分钟内**，超时 `2003`）；**typing**：`POST /conversations/:cid/messages/typing`（无 body，客户端 3s 防抖）
+- **实时**：Socket.IO `path:'/ws'` + `auth.token`，服务端事件 `message.created` / `read.receipt` / `chat:typing` / `friend.request` 等（**无 `chat:message`**）
+- **好友**：`/relations/*`（申请/接受/拒绝/好友/黑名单/私信门槛）
+- **身份**：接口用内部 `User.id`；只有 IDStack 主键时用 `POST /users/resolve` 批量解析
+
+### 4.3 服务号消息（Open API）
 
 应用入驻审批通过后，以「服务号」身份向已订阅用户下发消息（B 端营销须显式订阅）：
 
@@ -148,7 +164,7 @@ X-API-Key: <rdmapp_ 开头的应用 Key>
 
 前置：应用入驻（`POST /admin/apps` → 审批）→ 签发 API Key（`POST /open/api-keys`）→ 用户订阅（`AppSubscription`）。
 
-### 4.3 网页客服悬浮窗
+### 4.4 网页客服悬浮窗
 
 第三方站点一行接入：
 
@@ -158,7 +174,7 @@ X-API-Key: <rdmapp_ 开头的应用 Key>
 
 访客匿名会话（自动签发 visitorToken），登录后 `POST /widget/claim` 合并身份；坐席在工作台接待。
 
-### 4.4 App 推送
+### 4.5 App 推送
 
 ```http
 POST /api/v1/push/devices          # 注册设备 token（platform: web|ios|android|h5）
@@ -223,7 +239,9 @@ document.querySelector('rdm-notification-center').token = accessToken;
 
 | 项 | 说明 |
 |---|---|
+| `RAODAOR_MESSAGE_API_KEY` | 应用 API Key（`rdmapp_` 开头；`X-API-Key`，服务号消息下发） |
 | `RAODAOR_MESSAGE_INBOUND_KEY` | 对接方入站密钥（开放平台签发，每对接方独立；`X-Raodaor-Message-Inbound-Key`） |
+| `RAODAOR_MESSAGE_WEBHOOK_SECRET` | Webhook 订阅签名密钥（验 message 回调 `X-RDM-Signature`） |
 | `IDSTACK_JWKS_URI` / `IDSTACK_ISSUER` | message 验签 IDStack token 用（`/auth/idstack/exchange` 依赖） |
 | `CORS_ALLOW_ORIGINS` | 接入方源需加入 message 后端白名单（跨源请求） |
 | 域名白名单 | 卡片/服务号 deep link 的 http(s) 外链域名（`App.redirectDomains`） |

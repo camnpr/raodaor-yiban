@@ -1,10 +1,10 @@
 {
-  "version": "0.1.14",
+  "version": "0.1.15",
   "profile": "web",
   "ides": [
     "codebuddy"
   ],
-  "generatedAt": "2026-10-08T08:55:07.713Z",
+  "generatedAt": "2026-10-09T06:17:04.669Z",
   "files": [
     ".codebuddy/rules/core-principles/RULE.mdc",
     ".codebuddy/rules/ai-assistant/RULE.mdc",
@@ -48,6 +48,7 @@
     "docs/sdk/raodaor-docs/quickstart.md",
     "docs/sdk/raodaor-message/developer-platform.md",
     "docs/sdk/raodaor-message/errors.md",
+    "docs/sdk/raodaor-message/im-integration.md",
     "docs/sdk/raodaor-message/overview.md",
     "docs/sdk/raodaor-message/platform-architecture.md",
     "docs/sdk/raodaor-message/pre-send-hook-example.md",
