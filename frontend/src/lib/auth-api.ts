@@ -1,4 +1,4 @@
-import type { AuthSession, AuthUser, Capabilities } from '../stores/auth-store';
+import type { AuthMembership, AuthSession, AuthUser, Capabilities } from '../stores/auth-store';
 import { apiFetch } from './api';
 
 /** 后端 /auth/* 封装（密钥只在后端；前端只持有本平台 JWT 对） */
@@ -6,6 +6,7 @@ import { apiFetch } from './api';
 export interface MeResult {
   user: AuthUser;
   capabilities: Capabilities;
+  membership: AuthMembership;
 }
 
 /** IDStack 授权码 → 本平台 JWT 对（后端持 api_key/secret_key 换 token + JWKS 验签读 roles） */

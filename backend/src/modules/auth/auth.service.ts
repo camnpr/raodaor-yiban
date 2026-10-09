@@ -200,15 +200,24 @@ export class AuthService {
     });
   }
 
-  /** 当前登录用户信息（能力布尔随 token roles 派生） */
-  async me(requestUser: AuthedRequestUser): Promise<{ user: AuthUserVo; capabilities: Capabilities }> {
+  /** 当前登录用户信息（能力布尔随 token roles 派生 + 会员状态摘要） */
+  async me(
+    requestUser: AuthedRequestUser,
+  ): Promise<{ user: AuthUserVo; capabilities: Capabilities; membership: { tier: string | null; expiresAt: Date | null; isActive: boolean } }> {
     const user = await this.prisma.user.findUnique({ where: { id: requestUser.userId } });
     if (!user || user.deletedAt) {
       throw new BusinessException(2001, '用户不存在或已注销', HttpStatus.UNAUTHORIZED);
     }
+    const expiresAt = user.membershipExpiresAt ?? null;
+    const isActive = !!expiresAt && expiresAt.getTime() > Date.now();
     return {
       user: { id: user.id, displayName: user.displayName, avatarUrl: null },
       capabilities: capabilitiesFromRoles(requestUser.roles),
+      membership: {
+        tier: isActive ? user.membershipTier : null,
+        expiresAt: isActive ? expiresAt : null,
+        isActive,
+      },
     };
   }
 

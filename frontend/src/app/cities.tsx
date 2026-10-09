@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../design/theme';
 import { fontSize, radius, spacing, touchMinHeight } from '../design/tokens';
@@ -49,8 +49,16 @@ export default function CitiesScreen() {
         lng: city.lon,
       });
       await loadCities();
-    } catch {
-      // 已存在等错误静默（列表刷新即可见）
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (msg.includes('5005')) {
+        Alert.alert('已达收藏上限', '免费用户最多收藏 3 个城市，升级会员可解锁更多城市', [
+          { text: '取消', style: 'cancel' },
+          { text: '去升级', onPress: () => router.push('/membership') },
+        ]);
+      } else {
+        Alert.alert('添加失败', msg);
+      }
     }
   };
 

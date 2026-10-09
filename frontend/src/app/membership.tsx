@@ -1,0 +1,216 @@
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useTheme } from '../design/theme';
+import { fontSize, radius, spacing } from '../design/tokens';
+import { useT } from '../i18n';
+import { IDSTACK_BASE_URL } from '../config';
+import { useAuthStore } from '../stores/auth-store';
+import { Button } from '../components/ui/button';
+import {
+  createCheckout,
+  getMembershipPlans,
+  getMyMembership,
+  type MembershipBenefit,
+  type MyMembership,
+} from '../lib/membership-api';
+
+const TIER_LABELS: Record<string, string> = {
+  free: '免费版',
+  standard: '标准会员',
+  premium: '颐伴尊享',
+};
+
+function tierLabel(code: string | null): string {
+  if (!code) return TIER_LABELS.free;
+  return TIER_LABELS[code] ?? code;
+}
+
+function PerkRow({ ok, label }: { ok: boolean; label: string }) {
+  const theme = useTheme();
+  return (
+    <View style={styles.perkRow}>
+      <Text style={[styles.perkMark, { color: ok ? theme.brand : theme.textSecondary }]}>
+        {ok ? '✓' : '—'}
+      </Text>
+      <Text style={[styles.perkLabel, { color: ok ? theme.textPrimary : theme.textSecondary }]}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+/** 会员中心（M4）：权益阶梯展示 + 开通跳转绕道儿支付（FR-M1/M3/M4） */
+export default function MembershipScreen() {
+  const theme = useTheme();
+  const t = useT();
+  const router = useRouter();
+  const session = useAuthStore((s) => s.session);
+
+  const [plans, setPlans] = useState<MembershipBenefit[]>([]);
+  const [mine, setMine] = useState<MyMembership | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [upgrading, setUpgrading] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    if (!session) return;
+    setLoading(true);
+    try {
+      const [p, m] = await Promise.all([getMembershipPlans(), getMyMembership()]);
+      setPlans(p);
+      setMine(m);
+    } catch (e) {
+      // 网络/服务端异常：保留空态，下次进入再加载
+      void e;
+    } finally {
+      setLoading(false);
+    }
+  }, [session]);
+
+  useFocusEffect(useCallback(() => { void load(); }, [load]));
+
+  const onUpgrade = useCallback(
+    async (tierCode: string) => {
+      if (!session) {
+        router.push('/login');
+        return;
+      }
+      setUpgrading(tierCode);
+      try {
+        const intent = await createCheckout(tierCode);
+        const url =
+          `${IDSTACK_BASE_URL}/payment/create` +
+          `?businessType=membership` +
+          `&businessId=${encodeURIComponent(intent.tierCode)}` +
+          `&amount=${encodeURIComponent(intent.amount)}` +
+          `&currency=${encodeURIComponent(intent.currency)}` +
+          `&externalOrderId=${encodeURIComponent(intent.externalOrderId)}` +
+          `&locked=true`;
+        if (Platform.OS === 'web') {
+          window.open(url, '_blank');
+        } else {
+          await WebBrowser.openBrowserAsync(url);
+        }
+        // 付款由运营在 IDStack 核销后触发 webhook 落地；这里提示用户回来刷新
+        Alert.alert(t.membership.title, t.membership.refreshHint);
+        await load();
+      } catch (e) {
+        Alert.alert(t.membership.title, e instanceof Error ? e.message : String(e));
+      } finally {
+        setUpgrading(null);
+      }
+    },
+    [session, router, t, load],
+  );
+
+  if (!session) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <Text style={[styles.title, { color: theme.textPrimary }]}>{t.membership.title}</Text>
+        <Text style={[styles.empty, { color: theme.textSecondary }]}>{t.me.login}</Text>
+        <Button title={t.me.login} onPress={() => router.push('/login')} block />
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView
+      style={[styles.container, { backgroundColor: theme.background }]}
+      contentContainerStyle={styles.content}
+    >
+      <Text style={[styles.title, { color: theme.textPrimary }]}>{t.membership.title}</Text>
+
+      <View style={[styles.statusCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.statusLabel, { color: theme.textSecondary }]}>{t.membership.current}</Text>
+        <Text style={[styles.statusValue, { color: theme.textPrimary }]}>
+          {mine?.isActive ? tierLabel(mine.tier) : t.membership.statusFree}
+        </Text>
+        {mine?.isActive && mine.expiresAt ? (
+          <Text style={[styles.statusExp, { color: theme.textSecondary }]}>
+            {new Date(mine.expiresAt).toLocaleDateString()}
+          </Text>
+        ) : null}
+      </View>
+
+      <Text style={[styles.section, { color: theme.textPrimary }]}>{t.membership.plans}</Text>
+
+      {loading && plans.length === 0 ? (
+        <ActivityIndicator size="large" color={theme.brand} />
+      ) : (
+        plans.map((plan) => {
+          const active = mine?.isActive && mine.tier === plan.tierCode;
+          return (
+            <View
+              key={plan.tierCode}
+              style={[styles.planCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            >
+              <View style={styles.planHead}>
+                <Text style={[styles.planName, { color: theme.textPrimary }]}>{tierLabel(plan.tierCode)}</Text>
+                {active ? (
+                  <Text style={[styles.planActive, { color: theme.brand }]}>{t.membership.statusActive}</Text>
+                ) : null}
+              </View>
+
+              <Text style={[styles.section2, { color: theme.textSecondary }]}>{t.membership.perks}</Text>
+              <PerkRow ok={plan.timedBroadcast} label={t.membership.timedBroadcast} />
+              <PerkRow ok={plan.advancedWidget} label={t.membership.advancedWidget} />
+              <PerkRow ok={plan.dailyBrief} label={t.membership.dailyBrief} />
+              <PerkRow ok={plan.healthReport} label={t.membership.healthReport} />
+              <PerkRow
+                ok={plan.cityLimit == null}
+                label={`${t.membership.cityLimit}：${plan.cityLimit == null ? t.membership.unlimited : plan.cityLimit}`}
+              />
+              <PerkRow
+                ok={plan.careLimit > 1}
+                label={`${t.membership.careLimit}：${plan.careLimit}`}
+              />
+              <PerkRow
+                ok={plan.emergencyContactLimit > 1}
+                label={`${t.membership.emergencyContact}：${plan.emergencyContactLimit}`}
+              />
+              <PerkRow
+                ok={plan.aiCompanionQuota > 0}
+                label={`${t.membership.aiCompanion}：${plan.aiCompanionQuota > 0 ? plan.aiCompanionQuota : t.membership.unlimited}`}
+              />
+
+              {active ? (
+                <Button title={t.membership.statusActive} variant="secondary" disabled onPress={() => undefined} block />
+              ) : (
+                <Button
+                  title={upgrading === plan.tierCode ? t.membership.upgrading : t.membership.upgrade}
+                  onPress={() => onUpgrade(plan.tierCode)}
+                  disabled={upgrading !== null}
+                  block
+                />
+              )}
+            </View>
+          );
+        })
+      )}
+
+      <Text style={[styles.hint, { color: theme.textSecondary }]}>{t.membership.upgradeHint}</Text>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
+  title: { fontSize: fontSize.title, fontWeight: '700' },
+  empty: { fontSize: fontSize.body, textAlign: 'center' },
+  statusCard: { borderRadius: radius.md, borderWidth: 1, padding: spacing.lg, alignItems: 'center', gap: spacing.xs },
+  statusLabel: { fontSize: fontSize.body },
+  statusValue: { fontSize: fontSize.heading, fontWeight: '700' },
+  statusExp: { fontSize: fontSize.caption },
+  section: { fontSize: fontSize.heading, fontWeight: '700', marginTop: spacing.sm },
+  section2: { fontSize: fontSize.body, marginTop: spacing.sm },
+  planCard: { borderRadius: radius.md, borderWidth: 1, padding: spacing.lg, gap: spacing.sm },
+  planHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  planName: { fontSize: fontSize.heading, fontWeight: '700' },
+  planActive: { fontSize: fontSize.body, fontWeight: '600' },
+  perkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  perkMark: { fontSize: fontSize.body, width: 16 },
+  perkLabel: { fontSize: fontSize.body },
+  hint: { fontSize: fontSize.caption, textAlign: 'center', marginTop: spacing.sm },
+});

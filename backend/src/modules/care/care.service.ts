@@ -2,6 +2,7 @@ import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { WeatherService } from '../weather/weather.service';
+import { MembershipService } from '../membership/membership.service';
 import type {
   AirQuality,
   DailyItem,
@@ -72,6 +73,7 @@ export class CareService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly weather: WeatherService,
+    private readonly membership: MembershipService,
   ) {}
 
   // ---------- 绑定关系 ----------
@@ -133,6 +135,23 @@ export class CareService {
         .update({ where: { code }, data: { status: 'USED' } })
         .catch(() => undefined);
       throw new BusinessException(ERR.ALREADY_BOUND, '已与该家人建立守护关系', HttpStatus.CONFLICT);
+    }
+
+    // FR-C5 亲情绑定数量上限：免费 1 位长辈，会员提升（按守护人当前等级权益）
+    const guardian = await this.prisma.user.findUnique({
+      where: { id: invite.guardianUserId },
+      select: { membershipTier: true },
+    });
+    const benefit = await this.membership.getEffectiveBenefit(guardian?.membershipTier ?? null);
+    const boundCount = await this.prisma.careRelationship.count({
+      where: { guardianUserId: invite.guardianUserId, status: 'ACTIVE' },
+    });
+    if (boundCount >= benefit.careLimit) {
+      throw new BusinessException(
+        5005,
+        '绑定长辈数量已达当前会员等级上限，请升级会员解锁更多亲情守护',
+        HttpStatus.PAYMENT_REQUIRED,
+      );
     }
 
     const relation = await this.prisma.careRelationship.create({

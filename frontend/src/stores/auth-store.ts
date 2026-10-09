@@ -16,11 +16,21 @@ export interface AuthUser {
   avatarUrl: string | null;
 }
 
+export interface AuthMembership {
+  tier: string | null;
+  expiresAt: string | null;
+  isActive: boolean;
+}
+
 export interface AuthSession {
   accessToken: string;
   refreshToken: string;
   user: AuthUser;
   capabilities: Capabilities;
+  /**
+   * 会员状态摘要（后端 /auth/me 下发）：免费用户 tier=null / isActive=false。
+   */
+  membership?: AuthMembership | null;
   /**
    * IDStack access_token 透传：凭它调 message `POST /auth/idstack/exchange`
    * 免二次登录换消息域凭证。仅 SSO 登录时下发（refresh 不重建）。

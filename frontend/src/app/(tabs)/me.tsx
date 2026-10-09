@@ -34,6 +34,29 @@ export default function MeScreen() {
             <Text style={[styles.rowText, { color: theme.textPrimary }]}>{t.care.title}</Text>
             <Text style={[styles.rowChevron, { color: theme.textSecondary }]}>›</Text>
           </Pressable>
+          <Pressable
+            onPress={() => router.push('/membership')}
+            style={({ pressed }) => [
+              styles.row,
+              { borderColor: theme.border, opacity: pressed ? 0.7 : 1 },
+            ]}
+          >
+            <Text style={[styles.rowText, { color: theme.textPrimary }]}>{t.membership.title}</Text>
+            <View style={styles.rowRight}>
+              <Text
+                style={[
+                  styles.badge,
+                  {
+                    color: session.membership?.isActive ? theme.brand : theme.textSecondary,
+                    borderColor: session.membership?.isActive ? theme.brand : theme.border,
+                  },
+                ]}
+              >
+                {session.membership?.isActive ? t.membership.statusActive : t.membership.statusFree}
+              </Text>
+              <Text style={[styles.rowChevron, { color: theme.textSecondary }]}>›</Text>
+            </View>
+          </Pressable>
           <Button title={t.me.logout} variant="secondary" onPress={logout} block />
         </>
       ) : (
@@ -61,4 +84,6 @@ const styles = StyleSheet.create({
   },
   rowText: { fontSize: fontSize.body, fontWeight: '600' },
   rowChevron: { fontSize: 22 },
+  rowRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  badge: { fontSize: fontSize.caption, borderWidth: 1, borderRadius: 999, paddingVertical: 2, paddingHorizontal: spacing.sm },
 });

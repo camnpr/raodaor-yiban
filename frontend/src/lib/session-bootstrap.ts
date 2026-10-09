@@ -15,8 +15,8 @@ export async function bootstrapSession(): Promise<void> {
   if (!useAuthStore.getState().session) return;
 
   try {
-    const { user, capabilities } = await fetchMe();
-    useAuthStore.getState().patchSession({ user, capabilities });
+    const { user, capabilities, membership } = await fetchMe();
+    useAuthStore.getState().patchSession({ user, capabilities, membership });
   } catch {
     // 网络抖动 / 服务端异常：保留本地会话，下次启动再对齐
   }

@@ -16,12 +16,12 @@ export class AuthController {
     return this.auth.loginWithIdstackCode(dto);
   }
 
-  /** 当前登录用户（能力布尔驱动前端入口） */
+  /** 当前登录用户（能力布尔驱动前端入口 + 会员状态摘要） */
   @Get('me')
   @UseGuards(JwtAuthGuard)
   me(
     @Req() request: Request & { user: { userId: string; roles: string[] } },
-  ): Promise<{ user: AuthUserVo; capabilities: Capabilities }> {
+  ): Promise<{ user: AuthUserVo; capabilities: Capabilities; membership: { tier: string | null; expiresAt: Date | null; isActive: boolean } }> {
     return this.auth.me(request.user);
   }
 

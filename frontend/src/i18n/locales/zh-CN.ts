@@ -107,6 +107,29 @@ export interface Dict {
     searching: string;
     noResult: string;
   };
+  membership: {
+    title: string;
+    statusFree: string;
+    statusActive: string;
+    statusExpired: string;
+    current: string;
+    plans: string;
+    perks: string;
+    cityLimit: string;
+    careLimit: string;
+    timedBroadcast: string;
+    advancedWidget: string;
+    dailyBrief: string;
+    healthReport: string;
+    emergencyContact: string;
+    aiCompanion: string;
+    unlimited: string;
+    upgrade: string;
+    upgrading: string;
+    upgradeHint: string;
+    openPayment: string;
+    refreshHint: string;
+  };
 }
 
 const zhCN: Dict = {
@@ -216,6 +239,29 @@ const zhCN: Dict = {
     current: '当前',
     searching: '搜索中…',
     noResult: '未找到相关城市',
+  },
+  membership: {
+    title: '会员中心',
+    statusFree: '免费用户',
+    statusActive: '会员生效中',
+    statusExpired: '会员已过期',
+    current: '当前等级',
+    plans: '选择会员套餐',
+    perks: '尊享权益',
+    cityLimit: '城市收藏上限',
+    careLimit: '亲情守护上限',
+    timedBroadcast: '每日定时播报',
+    advancedWidget: '高级适老小组件',
+    dailyBrief: '子女每日简报',
+    healthReport: '完整健康报告',
+    emergencyContact: '紧急联系人上限',
+    aiCompanion: 'AI 暖心陪伴次数',
+    unlimited: '不限',
+    upgrade: '立即开通',
+    upgrading: '正在跳转支付…',
+    upgradeHint: '开通后将跳转绕道儿支付完成付款，核销后权益自动生效',
+    openPayment: '打开支付页',
+    refreshHint: '付款核销后在此刷新查看权益',
   },
 };
 
