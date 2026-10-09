@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "author": "camnpr<camnpr@163.com>",
   "private": true,
-  "description": "绕道儿颐伴后端（NestJS，端口 9015）",
+  "description": "绕道儿颐伴后端（NestJS，端口 9017）",
   "scripts": {
     "dev": "cross-env NODE_ENV=development nest start --watch",
     "build": "nest build",

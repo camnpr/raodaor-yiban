@@ -41,10 +41,20 @@ export interface AppConfig {
   };
   file: { baseUrl: string; apiKey: string };
   docs: { baseUrl: string; orgKey: string };
+  weather: {
+    /** QWeather API Host（国内主数据源） */
+    qweatherHost: string;
+    /** QWeather API Key（仅服务端持有） */
+    qweatherKey: string;
+    cacheTtlNow: number;
+    cacheTtlHourly: number;
+    cacheTtlDaily: number;
+    cacheTtlAlerts: number;
+  };
 }
 
 export default (): AppConfig => ({
-  port: toNumber(process.env.PORT) || 9015,
+  port: toNumber(process.env.PORT) || 9017,
   nodeEnv: process.env.NODE_ENV ?? 'development',
   databaseUrl: process.env.DATABASE_URL ?? '',
   cors: { allowOrigins: toList(process.env.CORS_ALLOW_ORIGINS) },
@@ -76,5 +86,13 @@ export default (): AppConfig => ({
   docs: {
     baseUrl: process.env.RAODAOR_DOCS_BASE_URL ?? '',
     orgKey: process.env.RAODAOR_DOCS_ORG_KEY ?? '',
+  },
+  weather: {
+    qweatherHost: (process.env.QWEATHER_API_HOST ?? 'https://api.qweather.com').replace(/\/+$/, ''),
+    qweatherKey: process.env.QWEATHER_API_KEY ?? '',
+    cacheTtlNow: toNumber(process.env.WEATHER_CACHE_TTL_NOW) || 600,
+    cacheTtlHourly: toNumber(process.env.WEATHER_CACHE_TTL_HOURLY) || 1800,
+    cacheTtlDaily: toNumber(process.env.WEATHER_CACHE_TTL_DAILY) || 7200,
+    cacheTtlAlerts: toNumber(process.env.WEATHER_CACHE_TTL_ALERTS) || 300,
   },
 });

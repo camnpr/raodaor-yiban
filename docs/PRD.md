@@ -5,8 +5,8 @@
 | 产品名称 | 绕道儿颐伴（Raodaor Yiban，长辈生活助手 APP） |
 | 产品形态 | 独立 APP（iOS / Android）+ Web 门户与运营后台 |
 | 前端域名 | https://yiban.raodaor.com |
-| 后端服务 | NestJS，端口 9015 |
-| 前端开发端口 | Expo Dev Server，端口 5115（`expo start --port 5115`） |
+| 后端服务 | NestJS，端口 9017 |
+| 前端开发端口 | Expo Dev Server，端口 5117（`expo start --port 5117`） |
 | 数据库 | PostgreSQL 14（Prisma） |
 | 文档版本 | v1.0 |
 | 编写日期 | 2026-10-09 |
@@ -413,7 +413,7 @@ raodaor-yiban/
 │   ├── .env.production
 │   ├── app.json / app.config.ts   # Expo 配置（bundle id、权限、深链 scheme、小组件插件）
 │   └── package.json
-├── backend/                       # 后端（NestJS，端口 9015）
+├── backend/                       # 后端（NestJS，端口 9017）
 │   ├── src/
 │   │   ├── modules/
 │   │   │   ├── auth/              # IDStack SSO 对接、/auth/me、webhook 入口
@@ -464,7 +464,7 @@ raodaor-yiban/
 |----|------|
 | 框架 | NestJS 11（模块化，统一前缀 `/api/v1`） |
 | ORM | Prisma ^6.19.3 + PostgreSQL 14（**不用 SQLite**，对齐生态标准，规避生产级并发/事务/迁移短板） |
-| 端口 | 9015（与生态不冲突：IDStack 9005、File 9001、Docs 9010、ad 9011、message 9012、POS 9013、QA 9014） |
+| 端口 | 9017（与生态不冲突：IDStack 9005、File 9001、Docs 9010、ad 9011、message 9012、POS 9013、QA 9014） |
 | 天气巡检 | 进程内定时任务（`@nestjs/schedule`）+ 数据库乐观锁（沿用生态无 Redis 方案，兼容目标部署环境）；预警命中触发推送 |
 | 天气缓存 | 服务端内存/短期 TTL 缓存（实时 10min、逐小时 30min、逐天 2h、预警 5min），应对 provider 限流与降级 |
 | 鉴权 | ① 用户态：本平台 JWT（SSO 换发，15 分钟 + refresh）② 公开态：天气读取免登录（`@Public` + 全局限流）③ Webhook：IDStack RS256 验签 ④ 服务端：message 入站密钥 / file·docs X-API-Key |
@@ -530,7 +530,7 @@ raodaor-yiban/
 **frontend/.env.development**
 
 ```bash
-EXPO_PUBLIC_API_BASE_URL=http://192.168.x.x:9015
+EXPO_PUBLIC_API_BASE_URL=http://192.168.x.x:9017
 EXPO_PUBLIC_IDSTACK_BASE_URL=https://idstack.raodaor.com
 EXPO_PUBLIC_IDSTACK_APP_ID=<应用 UUID>
 EXPO_PUBLIC_MESSAGE_BASE_URL=https://message.raodaor.com
@@ -550,12 +550,12 @@ EXPO_PUBLIC_DEFAULT_LOCALE=zh-CN
 **backend/.env.development**
 
 ```bash
-PORT=9015
+PORT=9017
 DATABASE_URL=postgresql://user:pass@localhost:5432/raodaor_yiban?schema=public
 JWT_ACCESS_SECRET=<本平台 JWT 密钥>
 JWT_ACCESS_TTL=15m
 JWT_REFRESH_TTL=7d
-CORS_ALLOW_ORIGINS=http://localhost:5115
+CORS_ALLOW_ORIGINS=http://localhost:5117
 
 # IDStack（仅服务端）
 IDSTACK_BASE_URL=https://idstack.raodaor.com
@@ -588,7 +588,7 @@ WEATHER_CACHE_TTL_ALERTS=300
 **backend/.env.production**
 
 ```bash
-PORT=9015
+PORT=9017
 DATABASE_URL=postgresql://user:pass@127.0.0.1:5432/raodaor_yiban?schema=public
 JWT_ACCESS_SECRET=<生产强密钥>
 JWT_ACCESS_TTL=15m
@@ -687,14 +687,14 @@ QWEATHER_API_KEY=<生产值>
 IIS 8（Windows Server 2012 R2，绑定 SSL 证书）
   ├─ 站点：frontend Web 导出产物（expo export --platform web → dist/）
   │    └─ URL Rewrite：SPA 回退（未知路径 → /index.html）
-  └─ ARR 反向代理：/api/* → http://127.0.0.1:9015
+  └─ ARR 反向代理：/api/* → http://127.0.0.1:9017
 PM2（以 Windows 服务运行，开机自启）
-  └─ backend（NestJS，监听 127.0.0.1:9015）
+  └─ backend（NestJS，监听 127.0.0.1:9017）
 PostgreSQL 14（本机实例，仅监听 127.0.0.1）
 
 iOS / Android APP
   └─ EAS Build（云端构建 IPA/AAB）→ App Store / 主流安卓商店
-      APP 直连 https://yiban.raodaor.com/api（同域 ARR → 9015）
+      APP 直连 https://yiban.raodaor.com/api（同域 ARR → 9017）
 ```
 
 ### 8.2 部署要点
@@ -704,11 +704,11 @@ iOS / Android APP
 | Web 端发布 | 构建在开发机/CI 完成（`npx expo export --platform web`），上传 `dist` 到 IIS；URL Rewrite 配 SPA 回退 |
 | APP 构建 | EAS Build 云构建（规避 Windows 无法本地构建 iOS）；Android 出 AAB、iOS 出 IPA |
 | 后端运行 | PM2 守护：`pm2 start dist/main.js --name raodaor-yiban-backend`；`pm2 save` + `pm2-startup` 注册服务 |
-| 反向代理 | IIS 安装 ARR，规则 `/api/*` → `127.0.0.1:9015`，保留 Host 与 `X-Forwarded-For` |
+| 反向代理 | IIS 安装 ARR，规则 `/api/*` → `127.0.0.1:9017`，保留 Host 与 `X-Forwarded-For` |
 | HTTPS | IIS 绑定 `yiban.raodaor.com` 证书（TLS ≥1.2）；HTTP 301 跳 HTTPS |
 | 数据库 | PostgreSQL 14 单实例；Prisma 迁移**手动执行**（`npx prisma migrate deploy`），drift/reset 提示立即停止确认；每日全量备份 + WAL 归档（保留 ≥7 天） |
 | NPM 安装 | 依赖包**手动安装**（开发机 `pnpm install`）；服务器只部署构建产物与生产依赖 |
-| 防火墙 | 仅开放 80/443；9015 与 5432 仅本机访问 |
+| 防火墙 | 仅开放 80/443；9017 与 5432 仅本机访问 |
 | Webhook 公网 | `payment.verified` 等回调地址必须是 IDStack 可访问的公网 HTTPS 地址（经 IIS ARR 反代） |
 
 ### 8.3 环境差异
@@ -716,7 +716,7 @@ iOS / Android APP
 | 项 | 开发 | 生产 |
 |----|------|------|
 | 配置 | `.env.development`（前后端各自） | `.env.production`（前后端各自） |
-| Web/APP API | `http://192.168.x.x:9015`（局域网真机调试） | `https://yiban.raodaor.com/api`（ARR 反代） |
+| Web/APP API | `http://192.168.x.x:9017`（局域网真机调试） | `https://yiban.raodaor.com/api`（ARR 反代） |
 | 数据库 | 本地 PG，可 reset | 生产 PG，迁移前必须备份 |
 
 ---

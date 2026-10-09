@@ -4,6 +4,9 @@ import configuration from './common/config/configuration';
 import { PrismaModule } from './prisma/prisma.module';
 import { HealthModule } from './modules/health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { WeatherModule } from './modules/weather/weather.module';
+import { CitiesModule } from './modules/cities/cities.module';
+import { AlertsModule } from './modules/alerts/alerts.module';
 
 @Module({
   imports: [
@@ -16,6 +19,9 @@ import { AuthModule } from './modules/auth/auth.module';
     PrismaModule,
     HealthModule,
     AuthModule,
+    WeatherModule,
+    CitiesModule,
+    AlertsModule,
   ],
 })
 export class AppModule {}

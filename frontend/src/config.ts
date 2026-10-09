@@ -17,7 +17,7 @@ function normalizeApiBase(raw: string | undefined, fallback: string): string {
 /** API 基础地址（默认本机开发后端） */
 export const API_BASE_URL = normalizeApiBase(
   process.env.EXPO_PUBLIC_API_BASE_URL,
-  'http://localhost:9015/api/v1',
+  'http://localhost:9017/api/v1',
 );
 
 /** IDStack（SSO / 支付 / 会员目录）前端站点：/oauth/authorize 授权页、嵌入页 origin */

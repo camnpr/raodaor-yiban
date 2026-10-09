@@ -2,7 +2,7 @@
   "name": "raodaor-yiban",
   "version": "0.1.0",
   "private": true,
-  "description": "绕道儿颐伴（Raodaor Yiban）monorepo：frontend（Expo 57 三端）+ backend（NestJS 9015）",
+  "description": "绕道儿颐伴（Raodaor Yiban）monorepo：frontend（Expo 57 三端）+ backend（NestJS 9017）",
   "packageManager": "pnpm@11.0.9",
   "scripts": {
     "dev": "turbo run dev",

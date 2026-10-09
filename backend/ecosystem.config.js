@@ -33,12 +33,12 @@ module.exports = {
 
       env: {
         NODE_ENV: 'development',
-        PORT: 9015,
+        PORT: 9017,
         NODE_OPTIONS: '--max-old-space-size=192'
       },
       env_production: {
         NODE_ENV: 'production',
-        PORT: 9015,
+        PORT: 9017,
         NODE_OPTIONS: '--max-old-space-size=192'
       },
 
