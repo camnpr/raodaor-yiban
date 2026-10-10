@@ -31,9 +31,11 @@ export default function MeScreen() {
         </View>
       ) : session ? (
         <>
-          <Text style={[styles.name, { color: theme.textPrimary }]}>{session.user.displayName}</Text>
-          <Text style={[styles.hint, { color: theme.textSecondary }]}>
-            {t.me.membership} · {t.me.settings} · {t.me.fontSize}
+          <Text style={[styles.name, { color: theme.textPrimary, fontSize: fontSize.heading }]}>
+            {session.user.displayName}
+          </Text>
+          <Text style={[styles.hint, { color: theme.textSecondary, fontSize: fontSize.body }]}>
+            {t.me.membership}
           </Text>
           <Pressable
             onPress={() => router.push('/care')}
@@ -42,7 +44,9 @@ export default function MeScreen() {
               { borderColor: theme.border, opacity: pressed ? 0.7 : 1 },
             ]}
           >
-            <Text style={[styles.rowText, { color: theme.textPrimary }]}>{t.care.title}</Text>
+            <Text style={[styles.rowText, { color: theme.textPrimary, fontSize: fontSize.body }]}>
+              {t.care.title}
+            </Text>
             <Text style={[styles.rowChevron, { color: theme.textSecondary }]}>›</Text>
           </Pressable>
           <Pressable
@@ -52,7 +56,9 @@ export default function MeScreen() {
               { borderColor: theme.border, opacity: pressed ? 0.7 : 1 },
             ]}
           >
-            <Text style={[styles.rowText, { color: theme.textPrimary }]}>{t.membership.title}</Text>
+            <Text style={[styles.rowText, { color: theme.textPrimary, fontSize: fontSize.body }]}>
+              {t.membership.title}
+            </Text>
             <View style={styles.rowRight}>
               <Text
                 style={[
@@ -60,6 +66,7 @@ export default function MeScreen() {
                   {
                     color: session.membership?.isActive ? theme.brand : theme.textSecondary,
                     borderColor: session.membership?.isActive ? theme.brand : theme.border,
+                    fontSize: fontSize.caption,
                   },
                 ]}
               >
@@ -77,10 +84,38 @@ export default function MeScreen() {
                 { borderColor: theme.border, opacity: pressed ? 0.7 : 1 },
               ]}
             >
-              <Text style={[styles.rowText, { color: theme.textPrimary }]}>{t.admin.entry}</Text>
+              <Text style={[styles.rowText, { color: theme.textPrimary, fontSize: fontSize.body }]}>
+                {t.admin.entry}
+              </Text>
               <Text style={[styles.rowChevron, { color: theme.textSecondary }]}>›</Text>
             </Pressable>
           )}
+
+          <Pressable
+            onPress={() => router.push('/settings')}
+            style={({ pressed }) => [
+              styles.row,
+              { borderColor: theme.border, opacity: pressed ? 0.7 : 1 },
+            ]}
+          >
+            <Text style={[styles.rowText, { color: theme.textPrimary, fontSize: fontSize.body }]}>
+              {t.settings.title}
+            </Text>
+            <Text style={[styles.rowChevron, { color: theme.textSecondary }]}>›</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => router.push('/privacy')}
+            style={({ pressed }) => [
+              styles.row,
+              { borderColor: theme.border, opacity: pressed ? 0.7 : 1 },
+            ]}
+          >
+            <Text style={[styles.rowText, { color: theme.textPrimary, fontSize: fontSize.body }]}>
+              {t.settings.privacy}
+            </Text>
+            <Text style={[styles.rowChevron, { color: theme.textSecondary }]}>›</Text>
+          </Pressable>
 
           <Button title={t.me.logout} variant="secondary" onPress={logout} block />
         </>

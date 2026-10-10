@@ -7,6 +7,7 @@ import { fontSize, radius, spacing } from '../design/tokens';
 import { useT } from '../i18n';
 import { IDSTACK_BASE_URL } from '../config';
 import { useAuthStore } from '../stores/auth-store';
+import { useRequireConsent } from '../hooks/use-require-consent';
 import { Button } from '../components/ui/button';
 import { AppHeader } from '../components/ui/app-header';
 import {
@@ -80,6 +81,7 @@ export default function MembershipScreen() {
   const router = useRouter();
   const session = useAuthStore((s) => s.session);
   const patchSession = useAuthStore((s) => s.patchSession);
+  const requireConsent = useRequireConsent();
 
   const [plans, setPlans] = useState<MembershipBenefit[]>([]);
   const [mine, setMine] = useState<MyMembership | null>(null);
@@ -119,6 +121,7 @@ export default function MembershipScreen() {
         router.push('/login');
         return;
       }
+      if (!requireConsent()) return;
       setUpgrading(tierCode);
       try {
         const intent = await createCheckout(tierCode, session.idstackAccessToken);
@@ -164,7 +167,7 @@ export default function MembershipScreen() {
         setUpgrading(null);
       }
     },
-    [session, router, t, patchSession],
+    [session, router, t, patchSession, requireConsent],
   );
 
   const onToggleBroadcast = useCallback(

@@ -12,6 +12,7 @@ import { MembershipModule } from './modules/membership/membership.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { BroadcastModule } from './modules/broadcast/broadcast.module';
+import { AccountModule } from './modules/account/account.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { BroadcastModule } from './modules/broadcast/broadcast.module';
     BillingModule,
     AdminModule,
     BroadcastModule,
+    AccountModule,
   ],
 })
 export class AppModule {}

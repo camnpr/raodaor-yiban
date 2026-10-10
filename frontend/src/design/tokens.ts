@@ -4,6 +4,8 @@
  * 色板 / 字号 / 间距 / 圆角在此唯一定义，组件一律通过 useTheme() 消费。
  */
 
+import { useSettingsStore, type FontScaleLevel } from '../stores/settings-store';
+
 // ---------- 色板（原始色值，不直接使用） ----------
 
 export const palette = {
@@ -46,8 +48,36 @@ export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as cons
 
 export const radius = { sm: 8, md: 12, lg: 16, full: 999 } as const;
 
-/** 适老大字号（字号三档缩放为运行时能力，M2 接入；此处为默认基准） */
-export const fontSize = { caption: 14, body: 17, heading: 20, title: 28, display: 48 } as const;
+// ---------- 适老大字号（三档缩放，运行时按设置生效） ----------
+
+const FONT_BASE = { caption: 14, body: 17, heading: 20, title: 28, display: 48 } as const;
+const FONT_SCALE: Record<FontScaleLevel, number> = { normal: 1, large: 1.18, xlarge: 1.4 };
+
+function fontFactor(): number {
+  return FONT_SCALE[useSettingsStore.getState().fontScale] ?? 1;
+}
+
+/**
+ * 字号令牌：随「字体大小」设置实时缩放。
+ * 内联使用即为响应式；StyleSheet.create 静态项需改为内联方能生效（主标签屏已处理）。
+ */
+export const fontSize = {
+  get caption() {
+    return Math.round(FONT_BASE.caption * fontFactor());
+  },
+  get body() {
+    return Math.round(FONT_BASE.body * fontFactor());
+  },
+  get heading() {
+    return Math.round(FONT_BASE.heading * fontFactor());
+  },
+  get title() {
+    return Math.round(FONT_BASE.title * fontFactor());
+  },
+  get display() {
+    return Math.round(FONT_BASE.display * fontFactor());
+  },
+};
 
 /** 最小触控目标（适老规范：≥ 48dp，本项目取 56dp 更稳妥） */
 export const touchMinHeight = 56;
@@ -97,4 +127,20 @@ export const darkTheme: Theme = {
   success: '#3FC68F',
   warning: '#F2A64B',
   danger: '#EF6A6A',
+};
+
+/** 护眼 / 高对比主题（FR-V4）：强对比配色，减轻视觉疲劳 */
+export const highContrastTheme: Theme = {
+  background: palette.neutral[0],
+  surface: palette.neutral[0],
+  surfaceMuted: '#F0F0F0',
+  border: '#1A1A1A',
+  textPrimary: '#000000',
+  textSecondary: '#333333',
+  brand: palette.brand[700],
+  brandOn: palette.neutral[0],
+  brandSoft: '#FBE9D2',
+  success: '#0B6B3A',
+  warning: '#9A5B00',
+  danger: '#B00020',
 };

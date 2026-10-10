@@ -63,7 +63,9 @@ export default function CareScreen() {
       <View style={[styles.screen, { backgroundColor: theme.background }]}>
         <AppHeader title={t.care.title} />
         <View style={styles.content}>
-          <Text style={[styles.empty, { color: theme.textSecondary }]}>{t.care.empty}</Text>
+          <Text style={[styles.empty, { color: theme.textSecondary, fontSize: fontSize.body }]}>
+            {t.care.empty}
+          </Text>
           <Button title={t.me.login} onPress={() => router.push('/login')} block />
         </View>
       </View>
@@ -97,15 +99,21 @@ export default function CareScreen() {
         <Text style={[styles.empty, { color: theme.textSecondary }]}>{error}</Text>
       ) : !hasContent ? (
         <View style={styles.center}>
-          <Text style={[styles.empty, { color: theme.textSecondary }]}>{t.care.empty}</Text>
+          <Text style={[styles.empty, { color: theme.textSecondary, fontSize: fontSize.body }]}>
+            {t.care.empty}
+          </Text>
           <Button title={t.care.invite} onPress={() => router.push('/care/invite')} block />
         </View>
       ) : (
         <>
           {/* 守护中心：我守护的长辈 */}
-          <Text style={[styles.section, { color: theme.textPrimary }]}>{t.care.guardianSection}</Text>
+          <Text style={[styles.section, { color: theme.textPrimary, fontSize: fontSize.heading }]}>
+            {t.care.guardianSection}
+          </Text>
           {elders.length === 0 ? (
-            <Text style={[styles.muted, { color: theme.textSecondary }]}>{t.care.noElders}</Text>
+            <Text style={[styles.muted, { color: theme.textSecondary, fontSize: fontSize.body }]}>
+              {t.care.noElders}
+            </Text>
           ) : (
             elders.map((elder) => (
               <ElderCard
@@ -128,11 +136,16 @@ export default function CareScreen() {
                 key={g.id}
                 style={[styles.guardianRow, { backgroundColor: theme.surface, borderColor: theme.border }]}
               >
-                <Text style={[styles.guardianName, { color: theme.textPrimary }]} numberOfLines={1}>
+                <Text
+                  style={[styles.guardianName, { color: theme.textPrimary, fontSize: fontSize.body }]}
+                  numberOfLines={1}
+                >
                   {g.counterpartName}
                 </Text>
                 <Pressable onPress={() => onUnbind(g.id, g.counterpartName)} hitSlop={12}>
-                  <Text style={[styles.unbind, { color: theme.danger }]}>{t.care.unbind}</Text>
+                  <Text style={[styles.unbind, { color: theme.danger, fontSize: fontSize.body }]}>
+                  {t.care.unbind}
+                </Text>
                 </Pressable>
               </View>
             ))

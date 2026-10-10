@@ -116,7 +116,7 @@ export default function HomeScreen() {
         showBack={false}
         right={
           <Pressable onPress={() => router.push('/cities')} hitSlop={12} accessibilityRole="button">
-            <Text style={[styles.changeCity, { color: theme.brand }]}>
+            <Text style={[styles.changeCity, { color: theme.brand, fontSize: fontSize.body }]}>
               {currentCity ? t.weather.changeCity : t.weather.selectCity}
             </Text>
           </Pressable>
@@ -141,11 +141,13 @@ export default function HomeScreen() {
       ) : !currentCity ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={theme.brand} />
-          <Text style={[styles.centerText, { color: theme.textSecondary }]}>
+          <Text style={[styles.centerText, { color: theme.textSecondary, fontSize: fontSize.body }]}>
             {t.weather.obtainingLocation}
           </Text>
           <Pressable onPress={() => router.push('/cities')} hitSlop={12}>
-            <Text style={[styles.link, { color: theme.brand }]}>{t.weather.selectCity}</Text>
+            <Text style={[styles.link, { color: theme.brand, fontSize: fontSize.body }]}>
+              {t.weather.selectCity}
+            </Text>
           </Pressable>
         </View>
       ) : (

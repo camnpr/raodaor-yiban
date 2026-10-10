@@ -67,6 +67,33 @@ export interface Dict {
     login: string;
     guest: string;
   };
+  settings: {
+    title: string;
+    appearance: string;
+    fontSize: string;
+    fontSizeNormal: string;
+    fontSizeLarge: string;
+    fontSizeXLarge: string;
+    eyeCare: string;
+    eyeCareHint: string;
+    language: string;
+    privacy: string;
+    deactivate: string;
+    deactivateConfirmTitle: string;
+    deactivateConfirmText: string;
+    deactivating: string;
+    saved: string;
+  };
+  privacy: {
+    title: string;
+    consentTitle: string;
+    consentText: string;
+    agree: string;
+    disagree: string;
+    disagreeHint: string;
+    gateHint: string;
+    body: string;
+  };
   login: {
     title: string;
     subtitle: string;
@@ -235,6 +262,35 @@ const zhCN: Dict = {
     logout: '退出登录',
     login: '登录 / 注册',
     guest: '未登录',
+  },
+  settings: {
+    title: '设置',
+    appearance: '显示与适老',
+    fontSize: '字体大小',
+    fontSizeNormal: '标准',
+    fontSizeLarge: '大',
+    fontSizeXLarge: '超大',
+    eyeCare: '护眼模式',
+    eyeCareHint: '高对比配色，减轻视觉疲劳',
+    language: '语言',
+    privacy: '隐私政策',
+    deactivate: '注销账号',
+    deactivateConfirmTitle: '确认注销账号？',
+    deactivateConfirmText: '注销后您的个人数据将被匿名化处理，亲情关系将解除，城市与预警订阅将被清除，此操作不可恢复。',
+    deactivating: '注销中…',
+    saved: '已保存',
+  },
+  privacy: {
+    title: '隐私政策',
+    consentTitle: '隐私政策与用户协议',
+    consentText:
+      '我们非常重视您的隐私。绕道儿颐伴仅收集为您提供天气守护与亲情绑定所必需的最小信息：您授权的定位（用于默认城市，可拒绝并手动选择）、设备标识（用于消息推送）。我们不会向第三方出售您的个人信息，所有传输均经加密保护。您可以随时在设置中查看隐私政策或注销账号。',
+    agree: '同意并继续',
+    disagree: '暂不同意',
+    disagreeHint: '您仍可浏览天气，但绑定家人与会员需同意后使用',
+    gateHint: '绑定家人与会员功能需先阅读并同意隐私政策',
+    body:
+      '一、我们收集的信息\n我们仅收集为您提供核心功能所必需的最小信息：您授权的定位信息（用于推荐默认城市，您可拒绝并手动选择）、设备标识（用于消息推送与风控）。我们不会收集与核心功能无关的敏感信息。\n\n二、信息的使用\n您的天气浏览无需登录即可使用；绑定家人、会员等需登录的功能将在您同意本政策后开放。您的健康与定位数据仅在您已建立的亲情关系范围内共享。\n\n三、信息的保护\n全站采用 HTTPS 加密传输，移动端令牌存储于系统安全区，日志经脱敏处理。我们不会向任何第三方出售您的个人信息。\n\n四、您的权利\n您可以随时在「设置」中查看本政策、修改语言与适老偏好，或注销账号。注销后我们将对您的个人数据进行匿名化处理。',
   },
   login: {
     title: '登录绕道儿颐伴',

@@ -14,6 +14,7 @@ import { fontSize, radius, spacing } from '../../design/tokens';
 import { useT } from '../../i18n';
 import { useAuthStore } from '../../stores/auth-store';
 import { useCareStore } from '../../stores/care-store';
+import { useRequireConsent } from '../../hooks/use-require-consent';
 import { Button } from '../../components/ui/button';
 import { QrCode } from '../../components/ui/qr-code';
 import { AppHeader } from '../../components/ui/app-header';
@@ -32,6 +33,7 @@ export default function InviteScreen() {
 
   const createInvite = useCareStore((s) => s.createInvite);
   const acceptInvite = useCareStore((s) => s.acceptInvite);
+  const requireConsent = useRequireConsent();
 
   const [mode, setMode] = useState<Mode>(params.mode === 'elder' ? 'elder' : 'guardian');
   const [invite, setInvite] = useState<CareInvite | null>(null);
@@ -49,6 +51,7 @@ export default function InviteScreen() {
   const [message, setMessage] = useState<string | null>(null);
 
   const onGenerate = useCallback(async () => {
+    if (!requireConsent()) return;
     setLoading(true);
     setError(null);
     try {
@@ -61,6 +64,7 @@ export default function InviteScreen() {
   }, [createInvite, t.care.invalidCode]);
 
   const onAccept = useCallback(async () => {
+    if (!requireConsent()) return;
     const trimmed = code.trim().toUpperCase();
     if (!trimmed) {
       setError(t.care.codePlaceholder);

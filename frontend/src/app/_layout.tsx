@@ -8,6 +8,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTheme } from '../design/theme';
 import { useAuthStore } from '../stores/auth-store';
 import { bootstrapSession } from '../lib/session-bootstrap';
+import { ConsentModal } from '../components/common/consent-modal';
 
 /** 根布局：主题 + 会话启动对齐（能力布尔由服务端 /auth/me 覆盖本地快照） */
 export default function RootLayout() {
@@ -42,7 +43,10 @@ export default function RootLayout() {
         <Stack.Screen name="care/invite" />
         <Stack.Screen name="owner" />
         <Stack.Screen name="guard/[elderId]" />
+        <Stack.Screen name="settings" />
+        <Stack.Screen name="privacy" />
       </Stack>
+      <ConsentModal />
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
     </SafeAreaProvider>
   );
