@@ -2,6 +2,9 @@
 node_modules/
 .pnpm-store/
 
+# Turbo
+.turbo/
+
 # 构建产物
 dist/
 .expo/

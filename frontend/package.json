@@ -10,7 +10,9 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web --port 5117",
-    "build": "npx expo export --platform web",
+    "build-intro": "Windows Server 2012R2 资源管理器不支持直接右键新建以点开头的.pnpm文件夹, 可通过 CMD 命令 mkdir .pnpm",
+    "build": "npx expo export --platform web && node scripts/flatten-assets.mjs",
+    "build:raw": "expo export --platform web",
     "build:android": "npx eas build -p android --profile apkInstall --clear-cache",
     "build:ios": "npx eas build -p ios --profile production --clear-cache",
     "typecheck": "tsc --noEmit"
