@@ -76,10 +76,10 @@ export default function MeScreen() {
             </View>
           </Pressable>
 
-          {session.capabilities.owner && (
+          {session.capabilities.consoleAdmin && (
             <Pressable
-              // /owner 路由由 owner/index.tsx 提供，运行时有效；expo 生成的 typed-routes 偶发漏列该路由（生成产物损坏），此处显式断言。
-              onPress={() => router.push('/owner' as never)}
+              // /console/admin 路由由 console/admin/index.tsx 提供，运行时有效；expo 生成的 typed-routes 偶发漏列该路由（生成产物损坏），此处显式断言。
+              onPress={() => router.push('/console/admin' as never)}
               style={({ pressed }) => [
                 styles.row,
                 { borderColor: theme.border, opacity: pressed ? 0.7 : 1 },

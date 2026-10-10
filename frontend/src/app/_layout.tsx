@@ -43,7 +43,7 @@ export default function RootLayout() {
           <Stack.Screen name="auth/callback" />
           <Stack.Screen name="cities" />
           <Stack.Screen name="care/invite" />
-          <Stack.Screen name="owner" />
+          <Stack.Screen name="console/admin" />
           <Stack.Screen name="guard/[elderId]" />
           <Stack.Screen name="settings" />
           <Stack.Screen name="privacy" />

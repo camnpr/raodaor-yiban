@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme, type Theme } from '../../design/theme';
-import { fontSize, radius, spacing, touchMinHeight } from '../../design/tokens';
-import { useT } from '../../i18n';
-import type { Dict } from '../../i18n/locales/zh-CN';
-import { Button } from '../../components/ui/button';
-import { AppHeader } from '../../components/ui/app-header';
-import { grantMembership, checkGrant, type GrantCheckResult } from '../../lib/admin-api';
-import { ApiError } from '../../lib/api';
+import { useTheme, type Theme } from '../../../design/theme';
+import { fontSize, radius, spacing, touchMinHeight } from '../../../design/tokens';
+import { useT } from '../../../i18n';
+import type { Dict } from '../../../i18n/locales/zh-CN';
+import { Button } from '../../../components/ui/button';
+import { AppHeader } from '../../../components/ui/app-header';
+import { grantMembership, checkGrant, type GrantCheckResult } from '../../../lib/admin-api';
+import { ApiError } from '../../../lib/api';
 
-/** 运营补单（owner 专属；服务端二次鉴权 + 核销码已核销/不可重复校验） */
-export default function OwnerGrantScreen() {
+/** 运营补单（运营后台专属；服务端二次鉴权 + 核销码已核销/不可重复校验） */
+export default function AdminGrantScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const t = useT();

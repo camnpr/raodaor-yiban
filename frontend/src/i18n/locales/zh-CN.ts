@@ -196,6 +196,14 @@ export interface Dict {
     entry: string;
     centerTitle: string;
     grantItem: string;
+    overview: string;
+    users: string;
+    care: string;
+    membership: string;
+    alerts: string;
+    orders: string;
+    benefits: string;
+    comingSoon: string;
   };
   portal: {
     /** 产品名（按 locale 区分简繁） */
@@ -423,6 +431,14 @@ const zhCN: Dict = {
     entry: '平台运营中心',
     centerTitle: '平台运营中心',
     grantItem: '运营补单',
+    overview: '概览',
+    users: '用户与长辈档案',
+    care: '亲情守护',
+    membership: '会员',
+    alerts: '预警事件',
+    orders: '订阅订单',
+    benefits: '权益映射',
+    comingSoon: '功能建设中',
   },
   portal: {
     productName: '绕道儿·颐伴',
