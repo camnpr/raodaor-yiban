@@ -75,6 +75,13 @@ export interface AppConfig {
     cacheTtlDaily: number;
     cacheTtlAlerts: number;
   };
+  /** 运营后台「预警事件」大屏（raodaor-DataCanvas 只读嵌入，PRD §6.5） */
+  datacanvas: {
+    /** DataCanvas 大屏根地址（嵌入页）；缺省空串，由对应接口在调用点显式报错 */
+    baseUrl: string;
+    /** DataCanvas 开放 API Key（X-API-Key 头或嵌入令牌载荷）；缺省空串 */
+    apiKey: string;
+  };
 }
 
 export default (): AppConfig => ({
@@ -125,5 +132,9 @@ export default (): AppConfig => ({
     cacheTtlHourly: toNumber(process.env.WEATHER_CACHE_TTL_HOURLY) || 1800,
     cacheTtlDaily: toNumber(process.env.WEATHER_CACHE_TTL_DAILY) || 7200,
     cacheTtlAlerts: toNumber(process.env.WEATHER_CACHE_TTL_ALERTS) || 300,
+  },
+  datacanvas: {
+    baseUrl: process.env.DATACANVAS_BASE_URL ?? '',
+    apiKey: process.env.DATACANVAS_API_KEY ?? '',
   },
 });

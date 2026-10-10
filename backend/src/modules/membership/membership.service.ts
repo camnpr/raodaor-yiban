@@ -1,4 +1,5 @@
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BusinessException } from '../../common/exceptions/business.exception';
 
@@ -284,6 +285,46 @@ export class MembershipService {
       amount: session.amount,
       eligible: session.status === 'VERIFIED' && !granted,
     };
+  }
+
+  /** 权益映射（FR-M3）：运营后台读取阶梯（复用 getPlans 权威价覆盖） */
+  async getBenefits(): Promise<MembershipBenefitVo[]> {
+    return this.getPlans();
+  }
+
+  /**
+   * 运营维护「等级 → 权益」映射（FR-M3，owner 专属）。
+   * 仅更新权益列；priceMonthly 由代码权威价维护（DB 无此列），不可经此修改。
+   */
+  async updateBenefit(
+    tierCode: string,
+    dto: {
+      cityLimit?: number | null;
+      careLimit?: number;
+      timedBroadcast?: boolean;
+      advancedWidget?: boolean;
+      dailyBrief?: boolean;
+      healthReport?: boolean;
+      emergencyContactLimit?: number;
+      aiCompanionQuota?: number;
+    },
+  ): Promise<MembershipBenefitVo> {
+    await this.ensureSeeded();
+    const existing = await this.prisma.membershipBenefit.findUnique({ where: { tierCode } });
+    if (!existing) {
+      throw new BusinessException(4004, '权益等级不存在', HttpStatus.NOT_FOUND);
+    }
+    const data: Prisma.MembershipBenefitUpdateInput = {};
+    if (dto.cityLimit !== undefined) data.cityLimit = dto.cityLimit;
+    if (dto.careLimit !== undefined) data.careLimit = dto.careLimit;
+    if (dto.timedBroadcast !== undefined) data.timedBroadcast = dto.timedBroadcast;
+    if (dto.advancedWidget !== undefined) data.advancedWidget = dto.advancedWidget;
+    if (dto.dailyBrief !== undefined) data.dailyBrief = dto.dailyBrief;
+    if (dto.healthReport !== undefined) data.healthReport = dto.healthReport;
+    if (dto.emergencyContactLimit !== undefined) data.emergencyContactLimit = dto.emergencyContactLimit;
+    if (dto.aiCompanionQuota !== undefined) data.aiCompanionQuota = dto.aiCompanionQuota;
+    const row = await this.prisma.membershipBenefit.update({ where: { tierCode }, data });
+    return this.toVo(row);
   }
 
   private toVo(r: {
