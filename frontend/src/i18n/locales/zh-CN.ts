@@ -204,6 +204,38 @@ export interface Dict {
     orders: string;
     benefits: string;
     comingSoon: string;
+    overviewUsers: string;
+    overviewCare: string;
+    overviewActiveMembers: string;
+    overviewAlerts: string;
+    overviewRevenue: string;
+    searchPlaceholder: string;
+    userLocale: string;
+    userTier: string;
+    userExpiry: string;
+    userCreated: string;
+    noTier: string;
+    careElder: string;
+    careGuardian: string;
+    careStatus: string;
+    carePending: string;
+    careActive: string;
+    careRejected: string;
+    orderSubject: string;
+    orderPlan: string;
+    orderAmount: string;
+    orderStatus: string;
+    orderGranted: string;
+    benefitEdit: string;
+    benefitSave: string;
+    benefitSaving: string;
+    benefitSaved: string;
+    benefitPriceNote: string;
+    alertNotConfigured: string;
+    alertOpen: string;
+    emptyData: string;
+    loadMore: string;
+    loading: string;
   };
   portal: {
     /** 产品名（按 locale 区分简繁） */
@@ -439,6 +471,38 @@ const zhCN: Dict = {
     orders: '订阅订单',
     benefits: '权益映射',
     comingSoon: '功能建设中',
+    overviewUsers: '用户总数',
+    overviewCare: '亲情关系',
+    overviewActiveMembers: '活跃会员',
+    overviewAlerts: '预警事件',
+    overviewRevenue: '会员营收(元)',
+    searchPlaceholder: '搜索昵称 / 用户ID',
+    userLocale: '语言',
+    userTier: '会员等级',
+    userExpiry: '到期时间',
+    userCreated: '注册时间',
+    noTier: '未开通',
+    careElder: '长辈',
+    careGuardian: '守护人',
+    careStatus: '状态',
+    carePending: '待确认',
+    careActive: '生效中',
+    careRejected: '已拒绝',
+    orderSubject: '对象',
+    orderPlan: '套餐',
+    orderAmount: '金额',
+    orderStatus: '状态',
+    orderGranted: '补单时间',
+    benefitEdit: '编辑权益',
+    benefitSave: '保存',
+    benefitSaving: '保存中…',
+    benefitSaved: '已保存',
+    benefitPriceNote: '月费由代码维护，不可在此修改',
+    alertNotConfigured: '预警大屏尚未配置，请联系运维',
+    alertOpen: '打开大屏',
+    emptyData: '暂无数据',
+    loadMore: '加载更多',
+    loading: '加载中…',
   },
   portal: {
     productName: '绕道儿·颐伴',
