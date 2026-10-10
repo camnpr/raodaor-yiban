@@ -15,6 +15,7 @@ import { ElderCard } from '../../components/care/elder-card';
 export default function CareScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const hydrated = useAuthStore((s) => s.hydrated);
   const t = useT();
   const router = useRouter();
   const session = useAuthStore((s) => s.session);
@@ -84,7 +85,11 @@ export default function CareScreen() {
         style={styles.scroll}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xxl }]}
       >
-      {loading ? (
+      {!hydrated ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={theme.brand} />
+        </View>
+      ) : loading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={theme.brand} />
         </View>

@@ -162,6 +162,9 @@ export interface Dict {
     eligible: string;
     ownerLabel: string;
     planLabel: string;
+    entry: string;
+    centerTitle: string;
+    grantItem: string;
   };
 }
 
@@ -328,6 +331,9 @@ const zhCN: Dict = {
     eligible: '可补单',
     ownerLabel: '所属用户',
     planLabel: '套餐',
+    entry: '平台运营中心',
+    centerTitle: '平台运营中心',
+    grantItem: '运营补单',
   },
 };
 

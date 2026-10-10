@@ -163,6 +163,9 @@ const zhTW: Dict = {
     eligible: '可補單',
     ownerLabel: '所屬用戶',
     planLabel: '套餐',
+    entry: '平台營運中心',
+    centerTitle: '平台營運中心',
+    grantItem: '營運補單',
   },
 };
 

@@ -42,6 +42,7 @@ import { useResource } from '../../hooks/use-resource';
 export default function HomeScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const hydrated = useAuthStore((s) => s.hydrated);
   const t = useT();
   const locale = useI18nStore((s) => s.locale);
   const router = useRouter();
@@ -133,7 +134,11 @@ export default function HomeScreen() {
           />
         }
       >
-      {!currentCity ? (
+      {!hydrated ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={theme.brand} />
+        </View>
+      ) : !currentCity ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={theme.brand} />
           <Text style={[styles.centerText, { color: theme.textSecondary }]}>
