@@ -1,8 +1,9 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { AuthedRequestUser } from '../auth/jwt.types';
 import { MembershipService } from './membership.service';
+import { UpdateTimezoneDto } from './dto/update-timezone.dto';
 
 @Controller('membership')
 @UseGuards(JwtAuthGuard)
@@ -19,5 +20,11 @@ export class MembershipController {
   @Get('me')
   me(@CurrentUser() user: AuthedRequestUser) {
     return this.membership.getMyMembership(user.userId);
+  }
+
+  /** 更新用户时区（FR-M4 定时播报按时区换算） */
+  @Post('timezone')
+  updateTimezone(@CurrentUser() user: AuthedRequestUser, @Body() dto: UpdateTimezoneDto) {
+    return this.membership.updateTimezone(user.userId, dto.timezone);
   }
 }

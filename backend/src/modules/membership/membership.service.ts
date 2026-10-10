@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { BusinessException } from '../../common/exceptions/business.exception';
 
 /** 本地维护的「等级 → 权益」映射（FR-M3）；IDStack 仅托管套餐目录与收款。 */
 interface BenefitSeed {
@@ -46,6 +47,8 @@ export interface MyMembershipVo {
   expiresAt: Date | null;
   isActive: boolean;
   benefit: MembershipBenefitVo;
+  /** 用户时区（IANA）；定时播报等按此换算 */
+  timezone: string;
 }
 
 /** 未知（非 free）等级一律按最高权益解锁，避免 IDStack 等级码与本地映射暂时不一致时会员权益失效 */
@@ -102,7 +105,23 @@ export class MembershipService {
       expiresAt: isActive ? expiresAt : null,
       isActive,
       benefit: await this.getEffectiveBenefit(isActive ? tier : null),
+      timezone: user?.timezone ?? 'Asia/Shanghai',
     };
+  }
+
+  /** 更新用户时区（IANA），供定时播报等按时区换算（FR-M4 产品级） */
+  async updateTimezone(userId: string, tz: string): Promise<{ timezone: string }> {
+    try {
+      new Intl.DateTimeFormat('en-US', { timeZone: tz });
+    } catch {
+      throw new BusinessException(4001, '非法时区', HttpStatus.BAD_REQUEST);
+    }
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: { timezone: tz },
+      select: { timezone: true },
+    });
+    return { timezone: updated.timezone };
   }
 
   private findSeed(tierCode: string): BenefitSeed {
@@ -119,7 +138,7 @@ export class MembershipService {
     healthReport: boolean;
     emergencyContactLimit: number;
     aiCompanionQuota: number;
-    priceMonthly: string;
+    priceMonthly?: string;
   }): MembershipBenefitVo {
     return {
       tierCode: r.tierCode,
@@ -131,7 +150,8 @@ export class MembershipService {
       healthReport: r.healthReport,
       emergencyContactLimit: r.emergencyContactLimit,
       aiCompanionQuota: r.aiCompanionQuota,
-      priceMonthly: r.priceMonthly,
+      // priceMonthly 代码权威（DB 无此列），DB 行缺省时回退种子价
+      priceMonthly: r.priceMonthly ?? this.findSeed(r.tierCode).priceMonthly,
     };
   }
 }

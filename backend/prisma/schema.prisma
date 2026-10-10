@@ -48,10 +48,12 @@ model User {
   // 会员（FR-M2/M4）：会员等级 code 与到期时间；null = 免费用户
   membershipTier      String?
   membershipExpiresAt DateTime?
-  // 每日定时播报（FR-M4）：会员权益，开关 + 时段（Asia/Shanghai HH:mm）+ 上次发送（幂等防重）
+  // 每日定时播报（FR-M4）：会员权益，开关 + 时段（HH:mm）+ 上次发送（幂等防重）
   timedBroadcastEnabled  Boolean   @default(false)
   timedBroadcastTime     String? // "HH:mm"
   timedBroadcastLastSent DateTime?
+  // 用户时区（IANA，如 Asia/Shanghai）；定时播报按各自时区换算，不再硬编码
+  timezone              String   @default("Asia/Shanghai")
   deletedAt     DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

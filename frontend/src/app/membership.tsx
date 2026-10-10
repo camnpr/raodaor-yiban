@@ -14,6 +14,7 @@ import {
   getMyMembership,
   getBroadcastSettings,
   updateBroadcastSettings,
+  updateTimezone,
   type BroadcastSettings,
   type MembershipBenefit,
   type MyMembership,
@@ -28,22 +29,45 @@ const TIER_LABELS: Record<string, string> = {
 /** 适老友好的预设播报时段（避免复杂时间选择器） */
 const PRESET_TIMES = ['06:00', '07:00', '08:00', '09:00', '18:00', '20:00'];
 
+/** 常用时区（IANA），按用户时区换算播报；覆盖主要华人/海外聚居地 */
+const TIMEZONES = [
+  'Asia/Shanghai',
+  'Asia/Hong_Kong',
+  'Asia/Tokyo',
+  'Asia/Singapore',
+  'America/New_York',
+  'America/Los_Angeles',
+  'Europe/London',
+  'Australia/Sydney',
+];
+const TZ_LABELS: Record<string, string> = {
+  'Asia/Shanghai': '北京/上海',
+  'Asia/Hong_Kong': '香港',
+  'Asia/Tokyo': '东京',
+  'Asia/Singapore': '新加坡',
+  'America/New_York': '纽约',
+  'America/Los_Angeles': '洛杉矶',
+  'Europe/London': '伦敦',
+  'Australia/Sydney': '悉尼',
+};
+
 function tierLabel(code: string | null): string {
   if (!code) return TIER_LABELS.free;
   return TIER_LABELS[code] ?? code;
 }
 
-function PerkRow({ ok, label }: { ok: boolean; label: string }) {
+function PerkRow({ ok, label, onPress }: { ok: boolean; label: string; onPress?: () => void }) {
   const theme = useTheme();
   return (
-    <View style={styles.perkRow}>
+    <Pressable onPress={onPress} disabled={!onPress} style={styles.perkRow}>
       <Text style={[styles.perkMark, { color: ok ? theme.brand : theme.textSecondary }]}>
         {ok ? '✓' : '—'}
       </Text>
       <Text style={[styles.perkLabel, { color: ok ? theme.textPrimary : theme.textSecondary }]}>
         {label}
       </Text>
-    </View>
+      {onPress ? <Text style={[styles.perkArrow, { color: theme.textSecondary }]}>›</Text> : null}
+    </Pressable>
   );
 }
 
@@ -140,6 +164,18 @@ export default function MembershipScreen() {
     [t],
   );
 
+  const onPickTimezone = useCallback(
+    async (tz: string) => {
+      try {
+        const res = await updateTimezone(tz);
+        setMine((prev) => (prev ? { ...prev, timezone: res.timezone } : prev));
+      } catch (e) {
+        Alert.alert(t.membership.title, e instanceof Error ? e.message : String(e));
+      }
+    },
+    [t],
+  );
+
   if (!session) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -183,27 +219,50 @@ export default function MembershipScreen() {
         </View>
         {!broadcast?.entitled ? (
           <Text style={[styles.hint, { color: theme.textSecondary }]}>开通标准或尊享会员后，可设置每日定时天气播报</Text>
-        ) : broadcast.enabled ? (
-          <View style={styles.timeRow}>
-            {PRESET_TIMES.map((t0) => {
-              const active = broadcast.time === t0;
-              return (
-                <Pressable
-                  key={t0}
-                  onPress={() => onPickTime(t0)}
-                  style={[
-                    styles.timeChip,
-                    { borderColor: theme.border },
-                    active && { backgroundColor: theme.brand, borderColor: theme.brand },
-                  ]}
-                >
-                  <Text style={[styles.timeChipText, { color: active ? theme.surface : theme.textPrimary }]}>{t0}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
         ) : (
-          <Text style={[styles.hint, { color: theme.textSecondary }]}>开启后选择播报时段</Text>
+          <>
+            {broadcast.enabled ? (
+              <View style={styles.timeRow}>
+                {PRESET_TIMES.map((t0) => {
+                  const active = broadcast.time === t0;
+                  return (
+                    <Pressable
+                      key={t0}
+                      onPress={() => onPickTime(t0)}
+                      style={[
+                        styles.timeChip,
+                        { borderColor: theme.border },
+                        active && { backgroundColor: theme.brand, borderColor: theme.brand },
+                      ]}
+                    >
+                      <Text style={[styles.timeChipText, { color: active ? theme.surface : theme.textPrimary }]}>{t0}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : (
+              <Text style={[styles.hint, { color: theme.textSecondary }]}>开启后选择播报时段</Text>
+            )}
+            <Text style={[styles.section2, { color: theme.textSecondary }]}>播报时区</Text>
+            <View style={styles.timeRow}>
+              {TIMEZONES.map((tz) => {
+                const active = (mine?.timezone ?? 'Asia/Shanghai') === tz;
+                return (
+                  <Pressable
+                    key={tz}
+                    onPress={() => onPickTimezone(tz)}
+                    style={[
+                      styles.timeChip,
+                      { borderColor: theme.border },
+                      active && { backgroundColor: theme.brand, borderColor: theme.brand },
+                    ]}
+                  >
+                    <Text style={[styles.timeChipText, { color: active ? theme.surface : theme.textPrimary }]}>{TZ_LABELS[tz]}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </>
         )}
       </View>
 
@@ -232,7 +291,7 @@ export default function MembershipScreen() {
 
               <Text style={[styles.section2, { color: theme.textSecondary }]}>{t.membership.perks}</Text>
               <PerkRow ok={plan.timedBroadcast} label={t.membership.timedBroadcast} />
-              <PerkRow ok={plan.advancedWidget} label={t.membership.advancedWidget} />
+              <PerkRow ok={plan.advancedWidget} label={t.membership.advancedWidget} onPress={() => router.push('/widgets')} />
               <PerkRow ok={plan.dailyBrief} label={t.membership.dailyBrief} />
               <PerkRow ok={plan.healthReport} label={t.membership.healthReport} />
               <PerkRow
@@ -294,6 +353,7 @@ const styles = StyleSheet.create({
   timeChipText: { fontSize: fontSize.body },
   price: { fontSize: fontSize.heading, fontWeight: '700', marginVertical: spacing.xs },
   perkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  perkArrow: { fontSize: fontSize.body, marginLeft: 'auto' },
   perkMark: { fontSize: fontSize.body, width: 16 },
   perkLabel: { fontSize: fontSize.body },
   hint: { fontSize: fontSize.caption, textAlign: 'center', marginTop: spacing.sm },

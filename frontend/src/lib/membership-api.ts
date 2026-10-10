@@ -18,6 +18,8 @@ export interface MyMembership {
   expiresAt: string | null;
   isActive: boolean;
   benefit: MembershipBenefit;
+  /** 用户时区（IANA） */
+  timezone: string;
 }
 
 export interface CheckoutIntent {
@@ -62,5 +64,13 @@ export function updateBroadcastSettings(input: { enabled: boolean; time?: string
   return apiFetch<BroadcastSettings>('/broadcast/settings', {
     method: 'POST',
     body: JSON.stringify(input),
+  });
+}
+
+/** 更新用户时区（IANA），FR-M4 定时播报按时区换算 */
+export function updateTimezone(timezone: string): Promise<{ timezone: string }> {
+  return apiFetch<{ timezone: string }>('/membership/timezone', {
+    method: 'POST',
+    body: JSON.stringify({ timezone }),
   });
 }

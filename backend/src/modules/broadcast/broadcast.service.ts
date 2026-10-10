@@ -16,7 +16,7 @@ export interface BroadcastSettings {
 
 /**
  * 每日定时播报（FR-M4）：设置读写 + 到点播报投递。
- * 时段按 Asia/Shanghai 时区比较；投递经 raodaor-message（category=benefit）。
+ * 时段按用户各自时区（User.timezone，默认 Asia/Shanghai）换算；投递经 raodaor-message（category=benefit）。
  */
 @Injectable()
 export class BroadcastService {
@@ -69,25 +69,31 @@ export class BroadcastService {
     };
   }
 
-  /** 调度器调用：向所有「到点且今日未播」的会员推送天气播报（FR-M4）。返回本轮回推人数。 */
+  /** 调度器调用：向所有「到点且今日未播」的会员推送天气播报（FR-M4）。时段按用户各自时区换算。返回本轮回推人数。 */
   async processDueBroadcasts(): Promise<number> {
-    const hhmm = shanghaiHHmm();
-    const startToday = startOfTodayShanghai();
-    const due = await this.prisma.user.findMany({
-      where: {
-        timedBroadcastEnabled: true,
-        timedBroadcastTime: hhmm,
-        OR: [{ timedBroadcastLastSent: null }, { timedBroadcastLastSent: { lt: startToday } }],
+    const now = new Date();
+    const candidates = await this.prisma.user.findMany({
+      where: { timedBroadcastEnabled: true, timedBroadcastTime: { not: null } },
+      select: {
+        id: true,
+        idstackUserId: true,
+        timedBroadcastTime: true,
+        timezone: true,
+        timedBroadcastLastSent: true,
       },
-      select: { id: true, idstackUserId: true },
     });
-    if (!due.length) return 0;
+    if (!candidates.length) return 0;
 
     let sent = 0;
-    for (const u of due) {
+    for (const u of candidates) {
+      const tz = u.timezone || 'Asia/Shanghai';
+      if (u.timedBroadcastTime !== hhmmIn(tz, now)) continue;
+      // 幂等：同一用户在其时区内当日已播过则跳过
+      if (u.timedBroadcastLastSent && ymdIn(tz, u.timedBroadcastLastSent) === ymdIn(tz, now)) continue;
+
       // 先落今日已发送，避免重启/并发在同一分钟重复投递
       await this.prisma.user
-        .update({ where: { id: u.id }, data: { timedBroadcastLastSent: new Date() } })
+        .update({ where: { id: u.id }, data: { timedBroadcastLastSent: now } })
         .catch(() => undefined);
 
       try {
@@ -96,11 +102,11 @@ export class BroadcastService {
         });
         if (!city || city.lat == null || city.lng == null) continue;
 
-        const [now, aqi] = await Promise.all([
+        const [wNow, aqi] = await Promise.all([
           this.weather.getNow(city.lng, city.lat),
           this.weather.getAirQuality(city.lng, city.lat),
         ]);
-        const summary = buildSummary(city.name, now, aqi);
+        const summary = buildSummary(city.name, wNow, aqi);
         await this.message.send({
           idstackUserId: u.idstackUserId,
           category: 'benefit',
@@ -118,27 +124,26 @@ export class BroadcastService {
   }
 }
 
-/** 当前 Asia/Shanghai 的 HH:mm（24 小时制，去前导空格） */
-function shanghaiHHmm(): string {
-  return new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Asia/Shanghai',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  })
-    .format(new Date())
-    .replace(/\s/g, '');
+/** 指定时区下的 HH:mm（24 小时制，去前导空格）；非法时区回退 Asia/Shanghai */
+function hhmmIn(tz: string, at: Date): string {
+  try {
+    return new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false })
+      .format(at)
+      .replace(/\s/g, '');
+  } catch {
+    return new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Shanghai', hour: '2-digit', minute: '2-digit', hour12: false })
+      .format(at)
+      .replace(/\s/g, '');
+  }
 }
 
-/** 当前 Asia/Shanghai 日期 00:00 对应的 UTC 时刻（用于「今日是否已播」判定） */
-function startOfTodayShanghai(): Date {
-  const ymd = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Shanghai',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(new Date());
-  return new Date(`${ymd}T00:00:00+08:00`);
+/** 指定时区下的本地日期 YYYY-MM-DD（用于「当日是否已播」判定）；非法时区回退 Asia/Shanghai */
+function ymdIn(tz: string, at: Date): string {
+  try {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(at);
+  } catch {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit' }).format(at);
+  }
 }
 
 /** 组装适老口语化播报文案 */
