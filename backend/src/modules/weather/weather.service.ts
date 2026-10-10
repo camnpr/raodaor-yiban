@@ -8,6 +8,7 @@ import type {
   CityResult,
   DailyItem,
   HourlyItem,
+  LifeIndex,
   WeatherAlert,
   WeatherNow,
 } from './weather.types';
@@ -81,5 +82,10 @@ export class WeatherService {
   async searchCity(keyword: string): Promise<CityResult[]> {
     this.assertConfigured();
     return this.provider.searchCity(keyword);
+  }
+
+  getIndices(lon: number, lat: number): Promise<LifeIndex[]> {
+    this.assertConfigured();
+    return this.cached(`indices:${lon},${lat}`, this.ttl('daily'), () => this.provider.getIndices({ lon, lat }));
   }
 }

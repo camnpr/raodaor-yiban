@@ -124,6 +124,7 @@ export interface Dict {
     sunrise: string;
     sunset: string;
     today: string;
+    lifeIndex: string;
   };
   cities: {
     title: string;
@@ -323,6 +324,7 @@ const zhCN: Dict = {
     sunrise: '日出',
     sunset: '日落',
     today: '今天',
+    lifeIndex: '生活指数',
   },
   cities: {
     title: '城市管理',

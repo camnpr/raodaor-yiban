@@ -3,6 +3,7 @@ import type {
   CityResult,
   DailyItem,
   HourlyItem,
+  LifeIndex,
   WeatherAlert,
   WeatherNow,
 } from './weather.types';
@@ -24,5 +25,6 @@ export interface WeatherProvider {
   getDaily(location: WeatherLocation): Promise<DailyItem[]>;
   getAlerts(location: WeatherLocation): Promise<WeatherAlert[]>;
   getAirQuality(location: WeatherLocation): Promise<AirQuality | null>;
+  getIndices(location: WeatherLocation): Promise<LifeIndex[]>;
   searchCity(keyword: string): Promise<CityResult[]>;
 }

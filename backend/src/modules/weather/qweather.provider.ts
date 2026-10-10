@@ -8,6 +8,7 @@ import type {
   CityResult,
   DailyItem,
   HourlyItem,
+  LifeIndex,
   WeatherAlert,
   WeatherNow,
 } from './weather.types';
@@ -99,6 +100,15 @@ interface RawCity {
   adm2: string;
   lat: string;
   lon: string;
+}
+
+interface RawIndex {
+  date: string;
+  type: string;
+  name: string;
+  level: string;
+  category: string;
+  text: string;
 }
 
 @Injectable()
@@ -212,6 +222,19 @@ export class QWeatherProvider implements WeatherProvider {
       co: now.co,
       o3: now.o3,
     };
+  }
+
+  async getIndices(location: WeatherLocation): Promise<LifeIndex[]> {
+    // 生活指数类型：1 运动、2 洗车、3 穿衣、5 紫外线、8 舒适度、9 感冒（PRD FR-W5）
+    const types = ['1', '2', '3', '5', '8', '9'];
+    const { daily } = await this.get<RawIndex>(`/v7/indices/1d?type=${types.join(',')}`, location);
+    return (daily ?? []).map((i) => ({
+      type: i.type,
+      name: i.name,
+      level: i.level,
+      category: i.category,
+      text: i.text,
+    }));
   }
 
   async searchCity(keyword: string): Promise<CityResult[]> {

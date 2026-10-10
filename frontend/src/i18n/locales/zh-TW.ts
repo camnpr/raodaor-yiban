@@ -125,6 +125,7 @@ const zhTW: Dict = {
     sunrise: '日出',
     sunset: '日落',
     today: '今天',
+    lifeIndex: '生活指數',
   },
   cities: {
     title: '城市管理',

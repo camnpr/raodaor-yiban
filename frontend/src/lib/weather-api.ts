@@ -77,6 +77,20 @@ export interface CityResult {
   lon: number;
 }
 
+/** 生活指数（FR-W5）：type 为数据源类型编码；name/category/text 由数据源直接给出（中文） */
+export interface LifeIndex {
+  /** 指数类型编码（QWeather type：1=运动 2=洗车 3=穿衣 5=紫外线 8=舒适度 9=感冒） */
+  type: string;
+  /** 指数名称（如 穿衣指数） */
+  name: string;
+  /** 等级数字（1-5） */
+  level: string;
+  /** 等级名称（如 较舒适、适宜） */
+  category: string;
+  /** 适老 / 详细建议文案 */
+  text: string;
+}
+
 export interface FavoriteCity {
   id: string;
   cityId: string;
@@ -121,6 +135,10 @@ export function fetchAirQuality(lon: number, lat: number): Promise<AirQuality | 
 
 export function searchCity(keyword: string): Promise<CityResult[]> {
   return apiFetch<CityResult[]>(`/weather/search-city?keyword=${encodeURIComponent(keyword)}`);
+}
+
+export function fetchLifeIndices(lon: number, lat: number): Promise<LifeIndex[]> {
+  return apiFetch<LifeIndex[]>(`/weather/indices?lon=${lon}&lat=${lat}`);
 }
 
 // ---------- 城市收藏（需登录） ----------

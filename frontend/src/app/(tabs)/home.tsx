@@ -22,16 +22,19 @@ import {
   fetchAlerts,
   fetchDaily,
   fetchHourly,
+  fetchLifeIndices,
   fetchWeatherNow,
   type AirQuality,
   type DailyItem,
   type HourlyItem,
+  type LifeIndex,
   type WeatherAlert,
   type WeatherNow,
 } from '../../lib/weather-api';
 import { AlertBanner } from '../../components/weather/alert-banner';
 import { WeatherNowCard } from '../../components/weather/weather-now-card';
 import { AqiCard } from '../../components/weather/aqi-card';
+import { LifeIndexCard } from '../../components/weather/life-index-card';
 import { HourlyStrip } from '../../components/weather/hourly-strip';
 import { DailyList } from '../../components/weather/daily-list';
 import { AsyncSection } from '../../components/common/async-section';
@@ -81,8 +84,12 @@ export default function HomeScreen() {
   const aqi = useResource<AirQuality | null>(() => fetchAirQuality(lon!, lat!), [lon, lat], ready);
   const hourly = useResource<HourlyItem[]>(() => fetchHourly(lon!, lat!), [lon, lat], ready);
   const daily = useResource<DailyItem[]>(() => fetchDaily(lon!, lat!), [lon, lat], ready);
+  const indices = useResource<LifeIndex[]>(() => fetchLifeIndices(lon!, lat!), [lon, lat], ready);
 
-  const resources = useMemo(() => [now, alerts, aqi, hourly, daily], [now, alerts, aqi, hourly, daily]);
+  const resources = useMemo(
+    () => [now, alerts, aqi, indices, hourly, daily],
+    [now, alerts, aqi, indices, hourly, daily],
+  );
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -175,6 +182,10 @@ export default function HomeScreen() {
 
           <AsyncSection resource={hourly} minHeight={120}>
             {(list) => <HourlyStrip hourly={list} />}
+          </AsyncSection>
+
+          <AsyncSection resource={indices} minHeight={120}>
+            {(list) => <LifeIndexCard indices={list} />}
           </AsyncSection>
 
           <AsyncSection resource={daily} minHeight={200}>

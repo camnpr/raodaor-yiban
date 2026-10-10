@@ -7,6 +7,7 @@ import type {
   CityResult,
   DailyItem,
   HourlyItem,
+  LifeIndex,
   WeatherAlert,
   WeatherNow,
 } from './weather.types';
@@ -60,5 +61,11 @@ export class WeatherController {
   @Get('search-city')
   searchCity(@Query() q: SearchCityQueryDto): Promise<CityResult[]> {
     return this.weather.searchCity(q.keyword);
+  }
+
+  @Get('indices')
+  indices(@Query() q: LocationQueryDto): Promise<LifeIndex[]> {
+    const { lon, lat } = this.parseLocation(q);
+    return this.weather.getIndices(lon, lat);
   }
 }

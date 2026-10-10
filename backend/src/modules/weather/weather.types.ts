@@ -82,3 +82,17 @@ export interface CityResult {
   lat: number;
   lon: number;
 }
+
+/** 生活指数（FR-W5）：穿衣 / 洗车 / 运动 / 紫外线 / 舒适度 / 感冒等，适老文案化 */
+export interface LifeIndex {
+  /** 指数类型编码（QWeather type：1=运动 2=洗车 3=穿衣 5=紫外线 8=舒适度 9=感冒） */
+  type: string;
+  /** 指数名称（如 穿衣指数） */
+  name: string;
+  /** 等级数字（1-5） */
+  level: string;
+  /** 等级名称（如 较舒适、适宜） */
+  category: string;
+  /** 适老 / 详细建议文案 */
+  text: string;
+}
