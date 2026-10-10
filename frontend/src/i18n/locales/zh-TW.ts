@@ -77,7 +77,7 @@ const zhTW: Dict = {
     fontSizeLarge: '大',
     fontSizeXLarge: '超大',
     eyeCare: '護眼模式',
-    eyeCareHint: '高對比配色，減輕視覺疲勞',
+    eyeCareHint: '暖色護眼底色，降低藍光與眩光，減輕視覺疲勞',
     language: '語言',
     privacy: '隱私政策',
     deactivate: '註銷帳號',

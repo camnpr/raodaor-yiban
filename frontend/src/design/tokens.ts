@@ -129,18 +129,22 @@ export const darkTheme: Theme = {
   danger: '#EF6A6A',
 };
 
-/** 护眼 / 高对比主题（FR-V4）：强对比配色，减轻视觉疲劳 */
-export const highContrastTheme: Theme = {
-  background: palette.neutral[0],
-  surface: palette.neutral[0],
-  surfaceMuted: '#F0F0F0',
-  border: '#1A1A1A',
-  textPrimary: '#000000',
-  textSecondary: '#333333',
-  brand: palette.brand[700],
-  brandOn: palette.neutral[0],
-  brandSoft: '#FBE9D2',
-  success: '#0B6B3A',
-  warning: '#9A5B00',
-  danger: '#B00020',
+/**
+ * 护眼模式主题（FR-V4）：暖色护眼底色，降低蓝光与眩光，同时保留高可读性深褐文字。
+ * 相比「纯白背景 + 黑色线条」的高对比方案，暖米色背景减少强光刺激，更适合长时间阅读与中老年用户；
+ * 文字仍保持深色高对比，兼顾可读性需求。
+ */
+export const eyeCareTheme: Theme = {
+  background: '#F4ECDB',
+  surface: '#FBF6EA',
+  surfaceMuted: '#E9DCC0',
+  border: '#D8C7A3',
+  textPrimary: '#2A2418',
+  textSecondary: '#6B5E45',
+  brand: palette.brand[600],
+  brandOn: '#FBF6EA',
+  brandSoft: '#EAD9B8',
+  success: '#1E8E5A',
+  warning: '#9A6208',
+  danger: '#C73A3A',
 };

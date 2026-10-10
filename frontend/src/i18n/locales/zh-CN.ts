@@ -275,7 +275,7 @@ const zhCN: Dict = {
     fontSizeLarge: '大',
     fontSizeXLarge: '超大',
     eyeCare: '护眼模式',
-    eyeCareHint: '高对比配色，减轻视觉疲劳',
+    eyeCareHint: '暖色护眼底色，降低蓝光与眩光，减轻视觉疲劳',
     language: '语言',
     privacy: '隐私政策',
     deactivate: '注销账号',
