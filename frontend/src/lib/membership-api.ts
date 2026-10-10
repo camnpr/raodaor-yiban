@@ -27,6 +27,19 @@ export interface CheckoutIntent {
   tierCode: string;
   amount: string;
   currency: string;
+  /** IDStack 支付页链接（服务端代下单后返回）；null 时回退到前端直达 URL */
+  payUrl: string | null;
+}
+
+export interface CheckoutOrder {
+  externalOrderId: string;
+  targetPlan: string | null;
+  amount: string;
+  currency: string;
+  status: 'PENDING' | 'VERIFIED' | 'FAILED';
+  idstackOrderId: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /** 会员权益阶梯（FR-M3） */
@@ -39,12 +52,20 @@ export function getMyMembership(): Promise<MyMembership> {
   return apiFetch<MyMembership>('/membership/me');
 }
 
-/** 创建会员购买意图，返回 externalOrderId 供嵌入 IDStack 支付（FR-M1） */
-export function createCheckout(tierCode: string, amount?: string): Promise<CheckoutIntent> {
+/**
+ * 创建会员购买意图 + 服务端代下单 IDStack（对齐 SnapCompress 契约）。
+ * idstackAccessToken 仅用于后端代下单，不入库；缺省则回退到前端直达支付 URL。
+ */
+export function createCheckout(tierCode: string, idstackAccessToken?: string | null): Promise<CheckoutIntent> {
   return apiFetch<CheckoutIntent>('/billing/checkout', {
     method: 'POST',
-    body: JSON.stringify(amount ? { tierCode, amount } : { tierCode }),
+    body: JSON.stringify(idstackAccessToken ? { tierCode, idstackAccessToken } : { tierCode }),
   });
+}
+
+/** 我的购买意图 / 订单列表（用于支付后轮询核销状态，FR-M1） */
+export function getMyOrders(): Promise<CheckoutOrder[]> {
+  return apiFetch<CheckoutOrder[]>('/billing/orders');
 }
 
 export interface BroadcastSettings {

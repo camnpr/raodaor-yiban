@@ -130,6 +130,7 @@ const zhTW: Dict = {
     upgradeHint: '開通後將跳轉繞道兒支付完成付款，核銷後權益自動生效',
     openPayment: '打開支付頁',
     refreshHint: '付款核銷後在此重新整理查看權益',
+    upgradeSuccess: '會員已開通，感謝支持！',
   },
 };
 

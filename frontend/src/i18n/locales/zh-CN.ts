@@ -129,6 +129,7 @@ export interface Dict {
     upgradeHint: string;
     openPayment: string;
     refreshHint: string;
+    upgradeSuccess: string;
   };
 }
 
@@ -262,6 +263,7 @@ const zhCN: Dict = {
     upgradeHint: '开通后将跳转绕道儿支付完成付款，核销后权益自动生效',
     openPayment: '打开支付页',
     refreshHint: '付款核销后在此刷新查看权益',
+    upgradeSuccess: '会员已开通，感谢支持！',
   },
 };
 

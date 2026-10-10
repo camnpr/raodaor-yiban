@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -12,6 +12,7 @@ import {
   createCheckout,
   getMembershipPlans,
   getMyMembership,
+  getMyOrders,
   getBroadcastSettings,
   updateBroadcastSettings,
   updateTimezone,
@@ -77,12 +78,21 @@ export default function MembershipScreen() {
   const t = useT();
   const router = useRouter();
   const session = useAuthStore((s) => s.session);
+  const patchSession = useAuthStore((s) => s.patchSession);
 
   const [plans, setPlans] = useState<MembershipBenefit[]>([]);
   const [mine, setMine] = useState<MyMembership | null>(null);
   const [loading, setLoading] = useState(false);
   const [upgrading, setUpgrading] = useState<string | null>(null);
   const [broadcast, setBroadcast] = useState<BroadcastSettings | null>(null);
+  const pollTimers = useRef<ReturnType<typeof setInterval>[]>([]);
+
+  useEffect(() => {
+    const timers = pollTimers.current;
+    return () => {
+      timers.forEach((t) => clearInterval(t));
+    };
+  }, []);
 
   const load = useCallback(async () => {
     if (!session) return;
@@ -110,30 +120,50 @@ export default function MembershipScreen() {
       }
       setUpgrading(tierCode);
       try {
-        const intent = await createCheckout(tierCode);
-        const url =
+        const intent = await createCheckout(tierCode, session.idstackAccessToken);
+        // 优先用服务端代下单返回的 payUrl；缺省回退到旧版前端直达 URL（仍带 externalOrderId 兜底）
+        const payUrl =
+          intent.payUrl ??
           `${IDSTACK_BASE_URL}/payment/create` +
-          `?businessType=membership` +
-          `&businessId=${encodeURIComponent(intent.tierCode)}` +
-          `&amount=${encodeURIComponent(intent.amount)}` +
-          `&currency=${encodeURIComponent(intent.currency)}` +
-          `&externalOrderId=${encodeURIComponent(intent.externalOrderId)}` +
-          `&locked=true`;
+            `?businessType=membership` +
+            `&businessId=${encodeURIComponent(intent.tierCode)}` +
+            `&amount=${encodeURIComponent(intent.amount)}` +
+            `&currency=${encodeURIComponent(intent.currency)}` +
+            `&externalOrderId=${encodeURIComponent(intent.externalOrderId)}` +
+            `&locked=true`;
         if (Platform.OS === 'web') {
-          window.open(url, '_blank');
+          window.open(payUrl, '_blank');
         } else {
-          await WebBrowser.openBrowserAsync(url);
+          await WebBrowser.openBrowserAsync(payUrl);
         }
-        // 付款由运营在 IDStack 核销后触发 webhook 落地；这里提示用户回来刷新
-        Alert.alert(t.membership.title, t.membership.refreshHint);
-        await load();
+
+        // 轮询核销状态：webhook 落地后本地订单转为 VERIFIED，即会员已开通
+        const timer = setInterval(async () => {
+          try {
+            const orders = await getMyOrders();
+            const o = orders.find((x) => x.externalOrderId === intent.externalOrderId);
+            if (o && o.status === 'VERIFIED') {
+              clearInterval(timer);
+              const m = await getMyMembership();
+              setMine(m);
+              // 同步全局会话会员摘要（me.tsx 展示用）
+              patchSession({
+                membership: { tier: m.tier, expiresAt: m.expiresAt, isActive: m.isActive },
+              });
+              Alert.alert(t.membership.title, t.membership.upgradeSuccess ?? '会员已开通，感谢支持！');
+              setUpgrading(null);
+            }
+          } catch {
+            // 单次轮询失败忽略，下轮重试
+          }
+        }, 3000);
+        pollTimers.current.push(timer);
       } catch (e) {
         Alert.alert(t.membership.title, e instanceof Error ? e.message : String(e));
-      } finally {
         setUpgrading(null);
       }
     },
-    [session, router, t, load],
+    [session, router, t, patchSession],
   );
 
   const onToggleBroadcast = useCallback(

@@ -14,6 +14,18 @@ function toList(raw: string | undefined): string[] {
     .filter(Boolean);
 }
 
+/** 解析 JSON 对象（如 '{"premium":"biz_xxx"}'），失败返回默认值 */
+function toJsonMap(raw: string | undefined, fallback: Record<string, string>): Record<string, string> {
+  if (!raw) return fallback;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object') return parsed as Record<string, string>;
+  } catch {
+    // 忽略非法 JSON，回落默认
+  }
+  return fallback;
+}
+
 export interface AppConfig {
   port: number;
   nodeEnv: string;
@@ -32,6 +44,8 @@ export interface AppConfig {
     jwksUri: string;
     /** 签发方 iss（消费方校验，缺省 https://idstack.raodaor.com） */
     issuer: string;
+    /** 套餐 → IDStack business_id 映射（JSON，如 '{"premium":"biz_xxx"}'）；缺省回退用 tierCode 本身 */
+    planBusinessIds: Record<string, string>;
   };
   message: {
     /** raodaor-message 后端 API 根（站内通知投递） */
@@ -84,6 +98,7 @@ export default (): AppConfig => ({
     appSecretKey: process.env.IDSTACK_APP_SECRET_KEY ?? '',
     jwksUri: process.env.IDSTACK_JWKS_URI ?? '',
     issuer: process.env.IDSTACK_ISSUER ?? 'https://idstack.raodaor.com',
+    planBusinessIds: toJsonMap(process.env.IDSTACK_PLAN_BUSINESS_IDS, {}),
   },
   message: {
     baseUrl: (process.env.RAODAOR_MESSAGE_BASE_URL ?? 'https://message.raodaor.com').replace(/\/+$/, ''),

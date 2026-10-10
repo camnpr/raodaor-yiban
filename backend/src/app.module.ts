@@ -10,6 +10,7 @@ import { AlertsModule } from './modules/alerts/alerts.module';
 import { CareModule } from './modules/care/care.module';
 import { MembershipModule } from './modules/membership/membership.module';
 import { BillingModule } from './modules/billing/billing.module';
+import { AdminModule } from './modules/admin/admin.module';
 import { BroadcastModule } from './modules/broadcast/broadcast.module';
 
 @Module({
@@ -29,6 +30,7 @@ import { BroadcastModule } from './modules/broadcast/broadcast.module';
     CareModule,
     MembershipModule,
     BillingModule,
+    AdminModule,
     BroadcastModule,
   ],
 })

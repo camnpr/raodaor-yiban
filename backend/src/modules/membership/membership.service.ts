@@ -128,6 +128,76 @@ export class MembershipService {
     return DEFAULT_BENEFITS.find((s) => s.tierCode === tierCode) ?? premiumDefaults();
   }
 
+  /**
+   * 运营手动补单（owner 角色）：为已付款但 webhook 未同步的用户补发会员。
+   * 顺延策略：若当前会员仍有效，从原到期日顺延；否则从现在起算。同时把关联的本地意图单标 VERIFIED 以便对账。
+   */
+  async grantMembership(input: {
+    operatorId: string;
+    userId?: string;
+    idstackUserId?: string;
+    tierCode: string;
+    months: number;
+    externalOrderId?: string;
+    note?: string;
+  }): Promise<{ userId: string; tierCode: string; expiresAt: Date; isActive: boolean }> {
+    if (!input.userId && !input.idstackUserId) {
+      throw new BusinessException(4001, '请提供 userId 或 idstackUserId', HttpStatus.BAD_REQUEST);
+    }
+    const user = input.userId
+      ? await this.prisma.user.findUnique({ where: { id: input.userId } })
+      : await this.prisma.user.findUnique({ where: { idstackUserId: input.idstackUserId } });
+    if (!user) {
+      throw new BusinessException(2001, '用户不存在', HttpStatus.NOT_FOUND);
+    }
+    // 仅支持已配置的付费等级
+    if (!TIER_PRICES[input.tierCode]) {
+      throw new BusinessException(4001, `不支持的等级：${input.tierCode}`, HttpStatus.BAD_REQUEST);
+    }
+
+    const now = new Date();
+    const base =
+      user.membershipExpiresAt && user.membershipExpiresAt.getTime() > now.getTime()
+        ? user.membershipExpiresAt
+        : now;
+    const expiresAt = new Date(base);
+    expiresAt.setMonth(expiresAt.getMonth() + input.months);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { membershipTier: input.tierCode, membershipExpiresAt: expiresAt },
+    });
+
+    // 关联意图单补标 VERIFIED（仅未核销的），避免对账时仍显示 PENDING
+    if (input.externalOrderId) {
+      await this.prisma.checkoutSession.updateMany({
+        where: { externalOrderId: input.externalOrderId, status: 'PENDING' },
+        data: { status: 'VERIFIED' },
+      });
+    }
+
+    await this.prisma.auditLog.create({
+      data: {
+        actorId: input.operatorId,
+        action: 'membership.grant',
+        targetType: 'user',
+        targetId: user.id,
+        detail: JSON.stringify({
+          tierCode: input.tierCode,
+          months: input.months,
+          expiresAt,
+          externalOrderId: input.externalOrderId ?? null,
+          note: input.note ?? null,
+        }),
+      },
+    });
+
+    this.logger.log(
+      `运营补单：user=${user.id} tier=${input.tierCode} months=${input.months} operator=${input.operatorId}`,
+    );
+    return { userId: user.id, tierCode: input.tierCode, expiresAt, isActive: true };
+  }
+
   private toVo(r: {
     tierCode: string;
     cityLimit: number | null;
