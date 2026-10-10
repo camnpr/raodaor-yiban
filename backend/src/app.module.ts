@@ -10,6 +10,7 @@ import { AlertsModule } from './modules/alerts/alerts.module';
 import { CareModule } from './modules/care/care.module';
 import { MembershipModule } from './modules/membership/membership.module';
 import { BillingModule } from './modules/billing/billing.module';
+import { BroadcastModule } from './modules/broadcast/broadcast.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { BillingModule } from './modules/billing/billing.module';
     CareModule,
     MembershipModule,
     BillingModule,
+    BroadcastModule,
   ],
 })
 export class AppModule {}

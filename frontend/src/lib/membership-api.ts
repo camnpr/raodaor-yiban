@@ -10,6 +10,7 @@ export interface MembershipBenefit {
   healthReport: boolean;
   emergencyContactLimit: number;
   aiCompanionQuota: number;
+  priceMonthly: string;
 }
 
 export interface MyMembership {
@@ -41,5 +42,25 @@ export function createCheckout(tierCode: string, amount?: string): Promise<Check
   return apiFetch<CheckoutIntent>('/billing/checkout', {
     method: 'POST',
     body: JSON.stringify(amount ? { tierCode, amount } : { tierCode }),
+  });
+}
+
+export interface BroadcastSettings {
+  enabled: boolean;
+  time: string | null;
+  /** 当前会员等级是否包含「每日定时播报」权益 */
+  entitled: boolean;
+}
+
+/** 我的定时播报设置 + 权益资格（FR-M4） */
+export function getBroadcastSettings(): Promise<BroadcastSettings> {
+  return apiFetch<BroadcastSettings>('/broadcast/settings');
+}
+
+/** 更新定时播报开关/时段（FR-M4） */
+export function updateBroadcastSettings(input: { enabled: boolean; time?: string }): Promise<BroadcastSettings> {
+  return apiFetch<BroadcastSettings>('/broadcast/settings', {
+    method: 'POST',
+    body: JSON.stringify(input),
   });
 }

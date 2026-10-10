@@ -12,14 +12,21 @@ interface BenefitSeed {
   healthReport: boolean;
   emergencyContactLimit: number;
   aiCompanionQuota: number;
+  /** 月费（元，字符串）；free=0 不可购；运营改价时同步更新此处（或由 IDStack 套餐目录覆盖） */
+  priceMonthly: string;
 }
 
-/** 默认权益阶梯（运营可经 DB 直接覆盖 tierCode 同名的行） */
+/** 默认权益阶梯（运营可经 DB 直接覆盖 tierCode 同名的行；priceMonthly 仍由代码维护，避免重复迁移） */
 const DEFAULT_BENEFITS: BenefitSeed[] = [
-  { tierCode: 'free', cityLimit: 3, careLimit: 1, timedBroadcast: false, advancedWidget: false, dailyBrief: false, healthReport: false, emergencyContactLimit: 1, aiCompanionQuota: 0 },
-  { tierCode: 'standard', cityLimit: 10, careLimit: 3, timedBroadcast: true, advancedWidget: true, dailyBrief: false, healthReport: false, emergencyContactLimit: 3, aiCompanionQuota: 0 },
-  { tierCode: 'premium', cityLimit: null, careLimit: 10, timedBroadcast: true, advancedWidget: true, dailyBrief: true, healthReport: true, emergencyContactLimit: 5, aiCompanionQuota: 50 },
+  { tierCode: 'free', cityLimit: 3, careLimit: 1, timedBroadcast: false, advancedWidget: false, dailyBrief: false, healthReport: false, emergencyContactLimit: 1, aiCompanionQuota: 0, priceMonthly: '0.00' },
+  { tierCode: 'standard', cityLimit: 10, careLimit: 3, timedBroadcast: true, advancedWidget: true, dailyBrief: false, healthReport: false, emergencyContactLimit: 3, aiCompanionQuota: 0, priceMonthly: '12.00' },
+  { tierCode: 'premium', cityLimit: null, careLimit: 10, timedBroadcast: true, advancedWidget: true, dailyBrief: true, healthReport: true, emergencyContactLimit: 5, aiCompanionQuota: 50, priceMonthly: '30.00' },
 ];
+
+/** 各等级月费（服务端权威价，checkout 以此为准，覆盖前端传入，防止篡改） */
+export const TIER_PRICES: Record<string, { amount: string; currency: string }> = Object.fromEntries(
+  DEFAULT_BENEFITS.map((b) => [b.tierCode, { amount: b.priceMonthly, currency: 'CNY' }]),
+);
 
 export interface MembershipBenefitVo {
   tierCode: string;
@@ -31,6 +38,7 @@ export interface MembershipBenefitVo {
   healthReport: boolean;
   emergencyContactLimit: number;
   aiCompanionQuota: number;
+  priceMonthly: string;
 }
 
 export interface MyMembershipVo {
@@ -62,11 +70,15 @@ export class MembershipService {
     }
   }
 
-  /** 全部权益阶梯（供前端套餐页展示，FR-M3） */
+  /** 全部权益阶梯（供前端套餐页展示，FR-M3）；priceMonthly 由代码权威价覆盖（DB 无此列） */
   async getPlans(): Promise<MembershipBenefitVo[]> {
     await this.ensureSeeded();
     const rows = await this.prisma.membershipBenefit.findMany({ orderBy: { tierCode: 'asc' } });
-    return rows.map((r) => this.toVo(r));
+    return rows.map((r) => {
+      const vo = this.toVo(r);
+      vo.priceMonthly = this.findSeed(r.tierCode).priceMonthly;
+      return vo;
+    });
   }
 
   /** 按等级取权益；null=免费（取 free）；未知付费等级=最高权益兜底 */
@@ -107,6 +119,7 @@ export class MembershipService {
     healthReport: boolean;
     emergencyContactLimit: number;
     aiCompanionQuota: number;
+    priceMonthly: string;
   }): MembershipBenefitVo {
     return {
       tierCode: r.tierCode,
@@ -118,6 +131,7 @@ export class MembershipService {
       healthReport: r.healthReport,
       emergencyContactLimit: r.emergencyContactLimit,
       aiCompanionQuota: r.aiCompanionQuota,
+      priceMonthly: r.priceMonthly,
     };
   }
 }

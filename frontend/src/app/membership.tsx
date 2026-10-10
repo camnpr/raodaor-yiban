@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTheme } from '../design/theme';
@@ -12,6 +12,9 @@ import {
   createCheckout,
   getMembershipPlans,
   getMyMembership,
+  getBroadcastSettings,
+  updateBroadcastSettings,
+  type BroadcastSettings,
   type MembershipBenefit,
   type MyMembership,
 } from '../lib/membership-api';
@@ -21,6 +24,9 @@ const TIER_LABELS: Record<string, string> = {
   standard: '标准会员',
   premium: '颐伴尊享',
 };
+
+/** 适老友好的预设播报时段（避免复杂时间选择器） */
+const PRESET_TIMES = ['06:00', '07:00', '08:00', '09:00', '18:00', '20:00'];
 
 function tierLabel(code: string | null): string {
   if (!code) return TIER_LABELS.free;
@@ -52,14 +58,16 @@ export default function MembershipScreen() {
   const [mine, setMine] = useState<MyMembership | null>(null);
   const [loading, setLoading] = useState(false);
   const [upgrading, setUpgrading] = useState<string | null>(null);
+  const [broadcast, setBroadcast] = useState<BroadcastSettings | null>(null);
 
   const load = useCallback(async () => {
     if (!session) return;
     setLoading(true);
     try {
-      const [p, m] = await Promise.all([getMembershipPlans(), getMyMembership()]);
+      const [p, m, b] = await Promise.all([getMembershipPlans(), getMyMembership(), getBroadcastSettings()]);
       setPlans(p);
       setMine(m);
+      setBroadcast(b);
     } catch (e) {
       // 网络/服务端异常：保留空态，下次进入再加载
       void e;
@@ -104,6 +112,34 @@ export default function MembershipScreen() {
     [session, router, t, load],
   );
 
+  const onToggleBroadcast = useCallback(
+    async (value: boolean) => {
+      if (!broadcast) return;
+      try {
+        const updated = await updateBroadcastSettings({
+          enabled: value,
+          time: value ? broadcast.time ?? PRESET_TIMES[2] : undefined,
+        });
+        setBroadcast(updated);
+      } catch (e) {
+        Alert.alert(t.membership.title, e instanceof Error ? e.message : String(e));
+      }
+    },
+    [broadcast, t],
+  );
+
+  const onPickTime = useCallback(
+    async (t0: string) => {
+      try {
+        const updated = await updateBroadcastSettings({ enabled: true, time: t0 });
+        setBroadcast(updated);
+      } catch (e) {
+        Alert.alert(t.membership.title, e instanceof Error ? e.message : String(e));
+      }
+    },
+    [t],
+  );
+
   if (!session) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -133,6 +169,44 @@ export default function MembershipScreen() {
         ) : null}
       </View>
 
+      {/* 每日定时播报（FR-M4）：会员权益，开关 + 时段 */}
+      <View style={[styles.planCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <View style={styles.planHead}>
+          <Text style={[styles.planName, { color: theme.textPrimary }]}>{t.membership.timedBroadcast}</Text>
+          {broadcast?.entitled ? (
+            <Switch
+              value={broadcast.enabled}
+              onValueChange={onToggleBroadcast}
+              thumbColor={broadcast.enabled ? theme.brand : undefined}
+            />
+          ) : null}
+        </View>
+        {!broadcast?.entitled ? (
+          <Text style={[styles.hint, { color: theme.textSecondary }]}>开通标准或尊享会员后，可设置每日定时天气播报</Text>
+        ) : broadcast.enabled ? (
+          <View style={styles.timeRow}>
+            {PRESET_TIMES.map((t0) => {
+              const active = broadcast.time === t0;
+              return (
+                <Pressable
+                  key={t0}
+                  onPress={() => onPickTime(t0)}
+                  style={[
+                    styles.timeChip,
+                    { borderColor: theme.border },
+                    active && { backgroundColor: theme.brand, borderColor: theme.brand },
+                  ]}
+                >
+                  <Text style={[styles.timeChipText, { color: active ? theme.surface : theme.textPrimary }]}>{t0}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        ) : (
+          <Text style={[styles.hint, { color: theme.textSecondary }]}>开启后选择播报时段</Text>
+        )}
+      </View>
+
       <Text style={[styles.section, { color: theme.textPrimary }]}>{t.membership.plans}</Text>
 
       {loading && plans.length === 0 ? (
@@ -151,6 +225,10 @@ export default function MembershipScreen() {
                   <Text style={[styles.planActive, { color: theme.brand }]}>{t.membership.statusActive}</Text>
                 ) : null}
               </View>
+
+              <Text style={[styles.price, { color: theme.brand }]}>
+                {plan.priceMonthly === '0.00' ? '免费' : `¥${plan.priceMonthly} / 月`}
+              </Text>
 
               <Text style={[styles.section2, { color: theme.textSecondary }]}>{t.membership.perks}</Text>
               <PerkRow ok={plan.timedBroadcast} label={t.membership.timedBroadcast} />
@@ -176,6 +254,8 @@ export default function MembershipScreen() {
 
               {active ? (
                 <Button title={t.membership.statusActive} variant="secondary" disabled onPress={() => undefined} block />
+              ) : plan.tierCode === 'free' ? (
+                <Button title="免费" variant="secondary" disabled onPress={() => undefined} block />
               ) : (
                 <Button
                   title={upgrading === plan.tierCode ? t.membership.upgrading : t.membership.upgrade}
@@ -209,6 +289,10 @@ const styles = StyleSheet.create({
   planHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   planName: { fontSize: fontSize.heading, fontWeight: '700' },
   planActive: { fontSize: fontSize.body, fontWeight: '600' },
+  timeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
+  timeChip: { paddingVertical: spacing.xs, paddingHorizontal: spacing.md, borderRadius: radius.md, borderWidth: 1 },
+  timeChipText: { fontSize: fontSize.body },
+  price: { fontSize: fontSize.heading, fontWeight: '700', marginVertical: spacing.xs },
   perkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   perkMark: { fontSize: fontSize.body, width: 16 },
   perkLabel: { fontSize: fontSize.body },

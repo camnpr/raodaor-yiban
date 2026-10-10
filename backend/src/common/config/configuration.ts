@@ -44,6 +44,11 @@ export interface AppConfig {
     /** 巡检周期（秒），默认 300（5 分钟） */
     inspectIntervalSeconds: number;
   };
+  /** 每日定时播报调度（FR-M4） */
+  broadcast: {
+    /** 轮询周期（秒），默认 60 */
+    intervalSeconds: number;
+  };
   file: { baseUrl: string; apiKey: string };
   docs: { baseUrl: string; orgKey: string };
   weather: {
@@ -86,6 +91,9 @@ export default (): AppConfig => ({
   },
   alert: {
     inspectIntervalSeconds: toNumber(process.env.ALERT_INSPECT_INTERVAL_SECONDS) || 300,
+  },
+  broadcast: {
+    intervalSeconds: toNumber(process.env.BROADCAST_INTERVAL_SECONDS) || 60,
   },
   file: {
     baseUrl: process.env.RAODAOR_FILE_BASE_URL ?? '',

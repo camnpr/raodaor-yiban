@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BusinessException } from '../../common/exceptions/business.exception';
+import { TIER_PRICES } from '../membership/membership.service';
 import type { CreateCheckoutDto } from './dto/create-checkout.dto';
 
 export interface CheckoutVo {
@@ -17,8 +18,9 @@ export class BillingService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  /** 创建会员购买意图（FR-M1）：本地落 checkout_sessions，返回 externalOrderId 供前端调 IDStack payment-create */
+  /** 创建会员购买意图（FR-M1）：本地落 checkout_sessions，金额以服务端权威价为准（覆盖前端传入，防篡改） */
   async createCheckout(userId: string, dto: CreateCheckoutDto): Promise<CheckoutVo> {
+    const price = TIER_PRICES[dto.tierCode] ?? TIER_PRICES.free;
     const externalOrderId = `mem_${randomUUID()}`;
     const session = await this.prisma.checkoutSession.create({
       data: {
@@ -26,8 +28,8 @@ export class BillingService {
         subjectType: 'user',
         subjectId: userId,
         targetPlan: dto.tierCode,
-        amount: dto.amount ?? '0.00',
-        currency: dto.currency ?? 'CNY',
+        amount: price.amount,
+        currency: price.currency,
         status: 'PENDING',
       },
     });
