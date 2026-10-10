@@ -107,13 +107,13 @@ export class BillingService {
     return this.prisma.checkoutSession.findUnique({ where: { externalOrderId } });
   }
 
-  /** 标记意图为已核销并落地会员（事务，FR-M2） */
+  /** 标记意图为已核销并落地会员（事务，FR-M2）；grantedAt 与运营补单共享幂等标记，杜绝重复累加 */
   async markVerified(sessionId: string, idstackOrderId: string, userId: string, tierCode: string, expiresAt: Date | null) {
     try {
       await this.prisma.$transaction([
         this.prisma.checkoutSession.update({
           where: { id: sessionId },
-          data: { status: 'VERIFIED', idstackOrderId },
+          data: { status: 'VERIFIED', idstackOrderId, grantedAt: new Date() },
         }),
         this.prisma.user.update({
           where: { id: userId },

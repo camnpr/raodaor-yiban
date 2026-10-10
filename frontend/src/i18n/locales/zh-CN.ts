@@ -131,6 +131,38 @@ export interface Dict {
     refreshHint: string;
     upgradeSuccess: string;
   };
+  admin: {
+    sectionTitle: string;
+    sectionHint: string;
+    userIdLabel: string;
+    userIdPlaceholder: string;
+    tierLabel: string;
+    standard: string;
+    premium: string;
+    monthsLabel: string;
+    monthsPlaceholder: string;
+    codeLabel: string;
+    codePlaceholder: string;
+    noteLabel: string;
+    notePlaceholder: string;
+    submit: string;
+    submitting: string;
+    confirmTitle: string;
+    confirmText: string;
+    success: string;
+    failed: string;
+    checkButton: string;
+    checking: string;
+    notFound: string;
+    statusPending: string;
+    statusVerified: string;
+    statusFailed: string;
+    alreadyGranted: string;
+    notVerified: string;
+    eligible: string;
+    ownerLabel: string;
+    planLabel: string;
+  };
 }
 
 const zhCN: Dict = {
@@ -264,6 +296,38 @@ const zhCN: Dict = {
     openPayment: '打开支付页',
     refreshHint: '付款核销后在此刷新查看权益',
     upgradeSuccess: '会员已开通，感谢支持！',
+  },
+  admin: {
+    sectionTitle: '运营补单',
+    sectionHint: '为已核销但未自动同步会员的用户补发会员。核销码必须已核销、且不可重复补单。',
+    userIdLabel: '用户 ID',
+    userIdPlaceholder: '请输入本平台用户 ID',
+    tierLabel: '会员等级',
+    standard: '标准会员',
+    premium: '尊享会员',
+    monthsLabel: '时长（月）',
+    monthsPlaceholder: '1 ~ 36，如 12',
+    codeLabel: '核销码',
+    codePlaceholder: '请输入已核销的核销码',
+    noteLabel: '备注（选填）',
+    notePlaceholder: '补单原因，将记入审计日志',
+    submit: '确认补单',
+    submitting: '补单中…',
+    confirmTitle: '确认补单',
+    confirmText: '补单后核销码不可重复使用，且会记入审计日志。确定继续？',
+    success: '补单成功',
+    failed: '补单失败',
+    checkButton: '查询核销码状态',
+    checking: '查询中…',
+    notFound: '核销码不存在',
+    statusPending: '未核销',
+    statusVerified: '已核销',
+    statusFailed: '已失败',
+    alreadyGranted: '该核销码已补单，不可重复',
+    notVerified: '核销码尚未核销，不可补单',
+    eligible: '可补单',
+    ownerLabel: '所属用户',
+    planLabel: '套餐',
   },
 };
 

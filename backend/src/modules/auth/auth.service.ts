@@ -61,6 +61,7 @@ export function extractIdstackRoleNames(claims: IdstackJwtClaims, ownAppId: stri
 export function capabilitiesFromRoles(roles: string[]): Capabilities {
   return {
     consoleAdmin: roles.some((role) => ADMIN_ROLES.has(role)),
+    owner: roles.includes('owner'),
   };
 }
 

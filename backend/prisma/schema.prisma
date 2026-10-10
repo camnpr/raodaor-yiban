@@ -187,6 +187,8 @@ model CheckoutSession {
   currency        String         @default("CNY")
   status          CheckoutStatus @default(PENDING)
   idstackOrderId  String?
+  /** 会员落地幂等标记：webhook 核销落地或运营手动补单后写入；非空即不可再补单（防重复累加） */
+  grantedAt       DateTime?
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 

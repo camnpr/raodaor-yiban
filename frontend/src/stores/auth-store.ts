@@ -4,10 +4,12 @@ import { platformStorage } from './storage';
 /**
  * 与后端 /auth/* 返回结构对齐（capabilities 入口可见性驱动前端入口，禁止硬编码角色名）。
  * - `consoleAdmin`：平台运营后台（IDStack `system_admin` / `owner` 角色驱动）。
+ * - `owner`：平台拥有者（仅 IDStack `owner` 角色），运营补单等高危操作专属入口。
  * 长辈 / 守护人不依赖 IDStack 业务角色区分，视图由亲情关系数据（CareRelationship）驱动。
  */
 export interface Capabilities {
   consoleAdmin: boolean;
+  owner: boolean;
 }
 
 export interface AuthUser {

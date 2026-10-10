@@ -130,7 +130,13 @@ export class MembershipService {
 
   /**
    * 运营手动补单（owner 角色）：为已付款但 webhook 未同步的用户补发会员。
-   * 顺延策略：若当前会员仍有效，从原到期日顺延；否则从现在起算。同时把关联的本地意图单标 VERIFIED 以便对账。
+   *
+   * 安全性（全部服务端权威校验，前端只是录入界面）：
+   * 1) 必须提供已核销的核销码（externalOrderId），且对应 CheckoutSession 状态为 VERIFIED；
+   * 2) 同一核销码只能补单一次（grantedAt 非空即拒绝，杜绝重复累加；webhook 核销落地也会写该标记，两路互斥）；
+   * 3) 核销码所属用户必须与补单目标用户一致，防止把他人已付款挪给别的账号；
+   * 4) 顺延策略：当前会员仍有效则从原到期日顺延，否则从现在起算；
+   * 5) 以上写库动作在事务内原子完成，杜绝并发重复。
    */
   async grantMembership(input: {
     operatorId: string;
@@ -144,12 +150,45 @@ export class MembershipService {
     if (!input.userId && !input.idstackUserId) {
       throw new BusinessException(4001, '请提供 userId 或 idstackUserId', HttpStatus.BAD_REQUEST);
     }
+    if (!input.externalOrderId) {
+      throw new BusinessException(4001, '请提供核销码（externalOrderId）', HttpStatus.BAD_REQUEST);
+    }
+
+    // 1) + 2) 校验核销码：必须存在、已核销、且未重复补单
+    const session = await this.prisma.checkoutSession.findUnique({
+      where: { externalOrderId: input.externalOrderId },
+    });
+    if (!session) {
+      throw new BusinessException(4001, '核销码无效：系统中不存在该订单', HttpStatus.BAD_REQUEST);
+    }
+    if (session.status !== 'VERIFIED') {
+      throw new BusinessException(
+        4002,
+        `核销码尚未核销（当前状态：${session.status}），无法补单`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    if (session.grantedAt) {
+      throw new BusinessException(4003, '该核销码已补单，不能重复累加补单', HttpStatus.CONFLICT);
+    }
+
+    // 定位目标用户
     const user = input.userId
       ? await this.prisma.user.findUnique({ where: { id: input.userId } })
       : await this.prisma.user.findUnique({ where: { idstackUserId: input.idstackUserId } });
     if (!user) {
       throw new BusinessException(2001, '用户不存在', HttpStatus.NOT_FOUND);
     }
+
+    // 3) 核销码所属用户须与补单目标一致（付款人 = 受益账号）
+    if (session.subjectType === 'user' && session.subjectId && session.subjectId !== user.id) {
+      throw new BusinessException(
+        4004,
+        '核销码所属用户与目标用户不一致，禁止跨账号补单',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     // 仅支持已配置的付费等级
     if (!TIER_PRICES[input.tierCode]) {
       throw new BusinessException(4001, `不支持的等级：${input.tierCode}`, HttpStatus.BAD_REQUEST);
@@ -163,39 +202,88 @@ export class MembershipService {
     const expiresAt = new Date(base);
     expiresAt.setMonth(expiresAt.getMonth() + input.months);
 
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { membershipTier: input.tierCode, membershipExpiresAt: expiresAt },
-    });
-
-    // 关联意图单补标 VERIFIED（仅未核销的），避免对账时仍显示 PENDING
-    if (input.externalOrderId) {
-      await this.prisma.checkoutSession.updateMany({
-        where: { externalOrderId: input.externalOrderId, status: 'PENDING' },
-        data: { status: 'VERIFIED' },
-      });
-    }
-
-    await this.prisma.auditLog.create({
-      data: {
-        actorId: input.operatorId,
-        action: 'membership.grant',
-        targetType: 'user',
-        targetId: user.id,
-        detail: JSON.stringify({
-          tierCode: input.tierCode,
-          months: input.months,
-          expiresAt,
-          externalOrderId: input.externalOrderId ?? null,
-          note: input.note ?? null,
-        }),
-      },
-    });
+    // 5) 事务原子落地：标记已补单 + 写会员 + 审计
+    await this.prisma.$transaction([
+      this.prisma.checkoutSession.update({
+        where: { id: session.id },
+        data: { grantedAt: now },
+      }),
+      this.prisma.user.update({
+        where: { id: user.id },
+        data: { membershipTier: input.tierCode, membershipExpiresAt: expiresAt },
+      }),
+      this.prisma.auditLog.create({
+        data: {
+          actorId: input.operatorId,
+          action: 'membership.grant',
+          targetType: 'user',
+          targetId: user.id,
+          detail: JSON.stringify({
+            tierCode: input.tierCode,
+            months: input.months,
+            expiresAt,
+            externalOrderId: input.externalOrderId,
+            note: input.note ?? null,
+          }),
+        },
+      }),
+    ]);
 
     this.logger.log(
-      `运营补单：user=${user.id} tier=${input.tierCode} months=${input.months} operator=${input.operatorId}`,
+      `运营补单：user=${user.id} tier=${input.tierCode} months=${input.months} code=${input.externalOrderId} operator=${input.operatorId}`,
     );
     return { userId: user.id, tierCode: input.tierCode, expiresAt, isActive: true };
+  }
+
+  /**
+   * 补单前查询核销码当前状态（owner 角色，只读）：供前端在提交前展示是否「已核销 / 未核销 / 已补单」。
+   * 仅做查询，不落库、不改动任何状态；真正的校验仍以 grantMembership 服务端为准。
+   */
+  async checkGrant(externalOrderId: string): Promise<{
+    externalOrderId: string;
+    exists: boolean;
+    status: 'PENDING' | 'VERIFIED' | 'FAILED' | null;
+    granted: boolean;
+    subjectUserId: string | null;
+    targetPlan: string | null;
+    amount: string | null;
+    eligible: boolean;
+  }> {
+    const session = await this.prisma.checkoutSession.findUnique({
+      where: { externalOrderId },
+      select: {
+        externalOrderId: true,
+        status: true,
+        grantedAt: true,
+        subjectType: true,
+        subjectId: true,
+        targetPlan: true,
+        amount: true,
+      },
+    });
+    if (!session) {
+      return {
+        externalOrderId,
+        exists: false,
+        status: null,
+        granted: false,
+        subjectUserId: null,
+        targetPlan: null,
+        amount: null,
+        eligible: false,
+      };
+    }
+    const granted = !!session.grantedAt;
+    return {
+      externalOrderId: session.externalOrderId,
+      exists: true,
+      status: session.status,
+      granted,
+      subjectUserId: session.subjectType === 'user' ? session.subjectId : null,
+      targetPlan: session.targetPlan,
+      amount: session.amount,
+      eligible: session.status === 'VERIFIED' && !granted,
+    };
   }
 
   private toVo(r: {

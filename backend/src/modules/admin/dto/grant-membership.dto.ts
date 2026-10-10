@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsString, Matches, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, Matches, Max, Min } from 'class-validator';
 
 /** 运营手动补单（owner 角色）：为已付款但 webhook 未同步的用户补发会员 */
 export class GrantMembershipDto {
@@ -17,10 +17,11 @@ export class GrantMembershipDto {
   @Matches(/^(standard|premium)$/, { message: '仅支持 standard / premium' })
   tierCode!: string;
 
-  /** 时长（月），默认 1 */
+  /** 时长（月），默认 1，上限 120（防滥用） */
   @IsOptional()
   @IsInt()
   @Min(1)
+  @Max(120)
   months?: number;
 
   /** 关联本地意图单 externalOrderId（补单后标记 VERIFIED，便于对账） */

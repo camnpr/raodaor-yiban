@@ -52,9 +52,12 @@ export interface AuthedRequestUser {
 /**
  * 能力布尔：入口可见性一律由 `/auth/me` 下发，前端禁止硬编码角色名。
  * - `consoleAdmin` —— 平台运营后台（IDStack `system_admin` / `owner` 角色驱动）。
+ * - `owner` —— 平台拥有者（仅 IDStack `owner` 角色），运营补单等高危操作专属。
  * 长辈 / 守护人不依赖 IDStack 业务角色区分（二者可互为、可并存），
  * 视图由亲情关系数据（CareRelationship）驱动。
  */
 export interface Capabilities {
   consoleAdmin: boolean;
+  /** 平台拥有者：仅 owner 角色为 true（system_admin 为 false），用于展示/启用高危运营操作 */
+  owner: boolean;
 }
