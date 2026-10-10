@@ -3,18 +3,20 @@ import { useTheme } from '../../design/theme';
 import { fontSize, radius, spacing } from '../../design/tokens';
 import { useT } from '../../i18n';
 import { weatherEmoji } from '../../lib/weather-format';
-import type { WeatherNow } from '../../lib/weather-api';
+import type { AirQuality, WeatherNow } from '../../lib/weather-api';
 import { Button } from '../ui/button';
 
 interface Props {
   cityName: string;
   now: WeatherNow;
+  /** 空气质量（长辈守护详情页传入；无数据时留空） */
+  aqi?: AirQuality | null;
   onSpeak: () => void;
   speaking: boolean;
 }
 
-/** 大字实时天气卡（FR-W1：温度大字、口语化、语音播报；空气质量为独立模块，见 AqiCard） */
-export function WeatherNowCard({ cityName, now, onSpeak, speaking }: Props) {
+/** 大字实时天气卡（FR-W1：温度大字、口语化、语音播报；空气质量随卡展示） */
+export function WeatherNowCard({ cityName, now, aqi, onSpeak, speaking }: Props) {
   const theme = useTheme();
   const t = useT();
 
@@ -41,6 +43,12 @@ export function WeatherNowCard({ cityName, now, onSpeak, speaking }: Props) {
           {t.weather.precip} {now.precip}mm
         </Text>
       </View>
+
+      {aqi ? (
+        <Text style={[styles.aqi, { color: theme.textSecondary }]}>
+          {t.weather.aqi} {aqi.aqi} · {aqi.category}
+        </Text>
+      ) : null}
 
       <Button title={t.weather.voice} onPress={onSpeak} disabled={speaking} block />
     </View>

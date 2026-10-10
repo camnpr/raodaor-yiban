@@ -78,7 +78,8 @@ export default function MeScreen() {
 
           {session.capabilities.owner && (
             <Pressable
-              onPress={() => router.push('/owner')}
+              // /owner 路由由 owner/index.tsx 提供，运行时有效；expo 生成的 typed-routes 偶发漏列该路由（生成产物损坏），此处显式断言。
+              onPress={() => router.push('/owner' as never)}
               style={({ pressed }) => [
                 styles.row,
                 { borderColor: theme.border, opacity: pressed ? 0.7 : 1 },
