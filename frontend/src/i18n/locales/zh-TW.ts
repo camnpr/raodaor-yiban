@@ -25,7 +25,8 @@ const zhTW: Dict = {
   },
   care: {
     title: '親情守護',
-    empty: '還沒有綁定家人，登入後可新增守護',
+    empty: '還沒有綁定家人，點擊下方「親情綁定」新增你的第一位家人',
+    emptyUnauth: '還沒有綁定家人，登入後可新增守護',
     guardianSection: '我守護的長輩',
     elderSection: '守護我的家人',
     addElder: '新增長輩',

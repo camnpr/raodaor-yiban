@@ -24,7 +24,10 @@ export interface Dict {
   };
   care: {
     title: string;
+    /** 已登录但尚无守护家人时的空态文案 */
     empty: string;
+    /** 未登录时的引导文案（提示先登录） */
+    emptyUnauth: string;
     guardianSection: string;
     elderSection: string;
     addElder: string;
@@ -220,7 +223,8 @@ const zhCN: Dict = {
   },
   care: {
     title: '亲情守护',
-    empty: '还没有绑定家人，登录后可添加守护',
+    empty: '还没有绑定家人，点击下方「亲情绑定」添加你的第一位家人',
+    emptyUnauth: '还没有绑定家人，登录后可添加守护',
     guardianSection: '我守护的长辈',
     elderSection: '守护我的家人',
     addElder: '添加长辈',

@@ -15,7 +15,6 @@ import { ElderCard } from '../../components/care/elder-card';
 export default function CareScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const hydrated = useAuthStore((s) => s.hydrated);
   const t = useT();
   const router = useRouter();
   const session = useAuthStore((s) => s.session);
@@ -64,7 +63,7 @@ export default function CareScreen() {
         <AppHeader title={t.care.title} />
         <View style={styles.content}>
           <Text style={[styles.empty, { color: theme.textSecondary, fontSize: fontSize.body }]}>
-            {t.care.empty}
+            {t.care.emptyUnauth}
           </Text>
           <Button title={t.me.login} onPress={() => router.push('/login')} block />
         </View>
@@ -79,7 +78,9 @@ export default function CareScreen() {
         showBack={false}
         right={
           <Pressable onPress={() => router.push('/care/invite')} hitSlop={12} accessibilityRole="button">
-            <Text style={[styles.add, { color: theme.brand }]}>＋ {t.care.invite}</Text>
+            <Text style={[styles.add, { color: theme.brand }]} numberOfLines={1}>
+              ＋ {t.care.invite}
+            </Text>
           </Pressable>
         }
       />
@@ -87,11 +88,7 @@ export default function CareScreen() {
         style={styles.scroll}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xxl }]}
       >
-      {!hydrated ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={theme.brand} />
-        </View>
-      ) : loading ? (
+      {loading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={theme.brand} />
         </View>
@@ -161,7 +158,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   scroll: { flex: 1 },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
-  add: { fontSize: fontSize.heading, fontWeight: '700' },
+  add: { fontSize: fontSize.body, fontWeight: '700' },
   section: { fontSize: fontSize.heading, fontWeight: '700', marginTop: spacing.sm },
   center: { alignItems: 'center', gap: spacing.md, paddingVertical: spacing.xxl },
   empty: { fontSize: fontSize.body, textAlign: 'center' },

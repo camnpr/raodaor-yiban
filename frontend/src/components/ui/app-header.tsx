@@ -78,7 +78,7 @@ export function AppHeader({ title, subtitle, showBack = true, onBack, right }: A
 const styles = StyleSheet.create({
   header: { width: '100%', borderBottomWidth: 1 },
   row: { flexDirection: 'row', alignItems: 'center', minHeight: touchMinHeight, paddingHorizontal: spacing.md },
-  side: { width: 96, justifyContent: 'center' },
+  side: { justifyContent: 'center', flexShrink: 0 },
   sideLeft: { alignItems: 'flex-start' },
   sideRight: { alignItems: 'flex-end' },
   back: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingVertical: spacing.xs, paddingRight: spacing.sm },

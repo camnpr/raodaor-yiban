@@ -98,7 +98,7 @@ export default function InviteScreen() {
       <View style={[styles.screen, { backgroundColor: theme.background }]}>
         <AppHeader title={t.care.invite} />
         <View style={styles.content}>
-          <Text style={[styles.hint, { color: theme.textSecondary }]}>{t.care.empty}</Text>
+          <Text style={[styles.hint, { color: theme.textSecondary }]}>{t.care.emptyUnauth}</Text>
           <Button title={t.me.login} onPress={() => router.push('/login')} block />
         </View>
       </View>

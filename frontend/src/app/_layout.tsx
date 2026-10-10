@@ -3,7 +3,7 @@ import { Stack } from 'expo-router';
 import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
-import { Platform, useColorScheme } from 'react-native';
+import { ActivityIndicator, Platform, useColorScheme, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTheme } from '../design/theme';
 import { useAuthStore } from '../stores/auth-store';
@@ -35,17 +35,23 @@ export default function RootLayout() {
           content="绕道儿颐伴 是绕道儿（RaoDaor）生态面向中老年的 AI 暖心陪伴 + 健康安全守护综合生活助手"
         />
       </Head>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="login" />
-        <Stack.Screen name="auth/callback" />
-        <Stack.Screen name="cities" />
-        <Stack.Screen name="care/invite" />
-        <Stack.Screen name="owner" />
-        <Stack.Screen name="guard/[elderId]" />
-        <Stack.Screen name="settings" />
-        <Stack.Screen name="privacy" />
-      </Stack>
+      {authHydrated ? (
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="login" />
+          <Stack.Screen name="auth/callback" />
+          <Stack.Screen name="cities" />
+          <Stack.Screen name="care/invite" />
+          <Stack.Screen name="owner" />
+          <Stack.Screen name="guard/[elderId]" />
+          <Stack.Screen name="settings" />
+          <Stack.Screen name="privacy" />
+        </Stack>
+      ) : (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.background }}>
+          <ActivityIndicator size="large" color={theme.brand} />
+        </View>
+      )}
       <ConsentModal />
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
     </SafeAreaProvider>
