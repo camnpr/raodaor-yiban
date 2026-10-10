@@ -16,6 +16,7 @@ import { useAuthStore } from '../../stores/auth-store';
 import { useCareStore } from '../../stores/care-store';
 import { Button } from '../../components/ui/button';
 import { QrCode } from '../../components/ui/qr-code';
+import { AppHeader } from '../../components/ui/app-header';
 import { SITE_URL } from '../../config';
 import type { CareInvite } from '../../lib/care-api';
 
@@ -90,21 +91,20 @@ export default function InviteScreen() {
 
   if (!session) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Text style={[styles.title, { color: theme.textPrimary }]}>{t.care.invite}</Text>
-        <Text style={[styles.hint, { color: theme.textSecondary }]}>{t.care.empty}</Text>
-        <Button title={t.me.login} onPress={() => router.push('/login')} block />
+      <View style={[styles.screen, { backgroundColor: theme.background }]}>
+        <AppHeader title={t.care.invite} />
+        <View style={styles.content}>
+          <Text style={[styles.hint, { color: theme.textSecondary }]}>{t.care.empty}</Text>
+          <Button title={t.me.login} onPress={() => router.push('/login')} block />
+        </View>
       </View>
     );
   }
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: theme.background }]}
-      contentContainerStyle={styles.content}
-    >
-      <Text style={[styles.title, { color: theme.textPrimary }]}>{t.care.invite}</Text>
-
+    <View style={[styles.screen, { backgroundColor: theme.background }]}>
+      <AppHeader title={t.care.invite} />
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
       {/* 身份切换 */}
       <View style={[styles.segment, { borderColor: theme.border }]}>
         <Pressable
@@ -174,12 +174,14 @@ export default function InviteScreen() {
       {message ? (
         <Text style={[styles.message, { color: theme.success }]}>{message}</Text>
       ) : null}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  screen: { flex: 1 },
+  scroll: { flex: 1 },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
   title: { fontSize: fontSize.title, fontWeight: '700', textAlign: 'center' },
   hint: { fontSize: fontSize.body, textAlign: 'center' },

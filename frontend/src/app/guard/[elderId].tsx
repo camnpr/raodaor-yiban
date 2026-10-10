@@ -7,6 +7,7 @@ import { useI18nStore, useT } from '../../i18n';
 import { stopSpeaking, speakText } from '../../lib/speech';
 import { getElderWeather, type ElderWeather } from '../../lib/care-api';
 import { useCareStore } from '../../stores/care-store';
+import { AppHeader } from '../../components/ui/app-header';
 import { AlertBanner } from '../../components/weather/alert-banner';
 import { WeatherNowCard } from '../../components/weather/weather-now-card';
 import { HourlyStrip } from '../../components/weather/hourly-strip';
@@ -77,20 +78,9 @@ export default function GuardElderScreen() {
   }, [t, data, removeRelationship, router]);
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: theme.background }]}
-      contentContainerStyle={styles.content}
-    >
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Text style={[styles.back, { color: theme.brand }]}>‹ {t.common.back}</Text>
-        </Pressable>
-        <Text style={[styles.title, { color: theme.textPrimary }]}>
-          {data?.elder.displayName ?? t.guard.title}
-        </Text>
-        <View style={{ width: 56 }} />
-      </View>
-
+    <View style={[styles.screen, { backgroundColor: theme.background }]}>
+      <AppHeader title={data?.elder.displayName ?? t.guard.title} />
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
       {loading && !data ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={theme.brand} />
@@ -119,16 +109,15 @@ export default function GuardElderScreen() {
           <Button title={t.care.unbind} variant="secondary" onPress={onUnbind} block />
         </>
       ) : null}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  screen: { flex: 1 },
+  scroll: { flex: 1 },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  back: { fontSize: fontSize.heading, fontWeight: '700' },
-  title: { fontSize: fontSize.heading, fontWeight: '700', flexShrink: 1, textAlign: 'center' },
   center: { alignItems: 'center', gap: spacing.md, paddingVertical: spacing.xxl },
   hint: { fontSize: fontSize.body, textAlign: 'center' },
 });

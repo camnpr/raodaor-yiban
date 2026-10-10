@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../design/theme';
 import { fontSize, spacing } from '../../design/tokens';
 import { useI18nStore, useT } from '../../i18n';
@@ -34,11 +35,13 @@ import { AqiCard } from '../../components/weather/aqi-card';
 import { HourlyStrip } from '../../components/weather/hourly-strip';
 import { DailyList } from '../../components/weather/daily-list';
 import { AsyncSection } from '../../components/common/async-section';
+import { AppHeader } from '../../components/ui/app-header';
 import { useResource } from '../../hooks/use-resource';
 
 /** 天气首页（M2 核心）：各子模块独立加载/错误/重试，单模块失败不阻塞整页 */
 export default function HomeScreen() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const t = useT();
   const locale = useI18nStore((s) => s.locale);
   const router = useRouter();
@@ -106,29 +109,30 @@ export default function HomeScreen() {
   }, [now.data, alerts.data, currentCity, locale]);
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: theme.background }]}
-      contentContainerStyle={styles.content}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor={theme.brand}
-          colors={[theme.brand]}
-        />
-      }
-    >
-      <View style={styles.header}>
-        <Text style={[styles.cityName, { color: theme.textPrimary }]}>
-          {currentCity?.name ?? t.weather.noCity}
-        </Text>
-        <Pressable onPress={() => router.push('/cities')} hitSlop={12}>
-          <Text style={[styles.changeCity, { color: theme.brand }]}>
-            {currentCity ? t.weather.changeCity : t.weather.selectCity}
-          </Text>
-        </Pressable>
-      </View>
-
+    <View style={[styles.screen, { backgroundColor: theme.background }]}>
+      <AppHeader
+        title={currentCity?.name ?? t.weather.noCity}
+        showBack={false}
+        right={
+          <Pressable onPress={() => router.push('/cities')} hitSlop={12} accessibilityRole="button">
+            <Text style={[styles.changeCity, { color: theme.brand }]}>
+              {currentCity ? t.weather.changeCity : t.weather.selectCity}
+            </Text>
+          </Pressable>
+        }
+      />
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xxl }]}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.brand}
+            colors={[theme.brand]}
+          />
+        }
+      >
       {!currentCity ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={theme.brand} />
@@ -171,15 +175,15 @@ export default function HomeScreen() {
           </AsyncSection>
         </>
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  screen: { flex: 1 },
+  scroll: { flex: 1 },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  cityName: { fontSize: fontSize.title, fontWeight: '700' },
   changeCity: { fontSize: fontSize.body, fontWeight: '600' },
   center: { alignItems: 'center', gap: spacing.md, paddingVertical: spacing.xxl },
   centerText: { fontSize: fontSize.body },

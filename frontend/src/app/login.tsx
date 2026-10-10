@@ -7,6 +7,7 @@ import { fontSize, spacing } from '../design/tokens';
 import { useT } from '../i18n';
 import { useAuthStore } from '../stores/auth-store';
 import { Button } from '../components/ui/button';
+import { AppHeader } from '../components/ui/app-header';
 import { IDSTACK_LOGO_URL } from '../config';
 import { beginSsoLogin, completeSsoLogin, parseCallbackUrl } from '../lib/idstack-sso';
 
@@ -44,20 +45,22 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Image source={{ uri: IDSTACK_LOGO_URL }} style={styles.logo} />
-      <Text style={[styles.title, { color: theme.textPrimary }]}>{t.login.title}</Text>
-      <Text style={[styles.subtitle, { color: theme.textSecondary }]}>{t.login.subtitle}</Text>
-      <Button title={t.login.button} onPress={handleLogin} loading={loading} block />
-      {error ? <Text style={[styles.error, { color: theme.danger }]}>{error}</Text> : null}
+    <View style={[styles.screen, { backgroundColor: theme.background }]}>
+      <AppHeader title={t.common.appName} showBack={false} />
+      <View style={styles.content}>
+        <Image source={{ uri: IDSTACK_LOGO_URL }} style={styles.logo} />
+        <Text style={[styles.subtitle, { color: theme.textSecondary }]}>{t.login.subtitle}</Text>
+        <Button title={t.login.button} onPress={handleLogin} loading={loading} block />
+        {error ? <Text style={[styles.error, { color: theme.danger }]}>{error}</Text> : null}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: spacing.xl, gap: spacing.md, justifyContent: 'center' },
+  screen: { flex: 1 },
+  content: { flex: 1, padding: spacing.xl, gap: spacing.md, justifyContent: 'center' },
   logo: { width: 64, height: 64, alignSelf: 'center' },
-  title: { fontSize: fontSize.title, fontWeight: '700', textAlign: 'center' },
   subtitle: { fontSize: fontSize.body, textAlign: 'center', color: '#888' },
   error: { fontSize: fontSize.caption, textAlign: 'center' },
 });

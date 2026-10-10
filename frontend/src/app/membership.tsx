@@ -8,6 +8,7 @@ import { useT } from '../i18n';
 import { IDSTACK_BASE_URL } from '../config';
 import { useAuthStore } from '../stores/auth-store';
 import { Button } from '../components/ui/button';
+import { AppHeader } from '../components/ui/app-header';
 import {
   createCheckout,
   getMembershipPlans,
@@ -208,21 +209,20 @@ export default function MembershipScreen() {
 
   if (!session) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Text style={[styles.title, { color: theme.textPrimary }]}>{t.membership.title}</Text>
-        <Text style={[styles.empty, { color: theme.textSecondary }]}>{t.me.login}</Text>
-        <Button title={t.me.login} onPress={() => router.push('/login')} block />
+      <View style={[styles.screen, { backgroundColor: theme.background }]}>
+        <AppHeader title={t.membership.title} />
+        <View style={styles.content}>
+          <Text style={[styles.empty, { color: theme.textSecondary }]}>{t.me.login}</Text>
+          <Button title={t.me.login} onPress={() => router.push('/login')} block />
+        </View>
       </View>
     );
   }
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: theme.background }]}
-      contentContainerStyle={styles.content}
-    >
-      <Text style={[styles.title, { color: theme.textPrimary }]}>{t.membership.title}</Text>
-
+    <View style={[styles.screen, { backgroundColor: theme.background }]}>
+      <AppHeader title={t.membership.title} />
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
       <View style={[styles.statusCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <Text style={[styles.statusLabel, { color: theme.textSecondary }]}>{t.membership.current}</Text>
         <Text style={[styles.statusValue, { color: theme.textPrimary }]}>
@@ -359,12 +359,14 @@ export default function MembershipScreen() {
       )}
 
       <Text style={[styles.hint, { color: theme.textSecondary }]}>{t.membership.upgradeHint}</Text>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  screen: { flex: 1 },
+  scroll: { flex: 1 },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
   title: { fontSize: fontSize.title, fontWeight: '700' },
   empty: { fontSize: fontSize.body, textAlign: 'center' },

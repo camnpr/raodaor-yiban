@@ -6,6 +6,7 @@ import { fontSize, radius, spacing, touchMinHeight } from '../design/tokens';
 import { useT } from '../i18n';
 import { useWeatherStore } from '../stores/weather-store';
 import { addCity, removeCity, searchCity, setDefaultCity, type CityResult, type FavoriteCity } from '../lib/weather-api';
+import { AppHeader } from '../components/ui/app-header';
 
 /** 城市管理（FR-L1/L2）：搜索添加、收藏列表、设为默认、删除 */
 export default function CitiesScreen() {
@@ -78,13 +79,13 @@ export default function CitiesScreen() {
   };
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: theme.background }]}
-      contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="handled"
-    >
-      <Text style={[styles.title, { color: theme.textPrimary }]}>{t.cities.title}</Text>
-
+    <View style={[styles.screen, { backgroundColor: theme.background }]}>
+      <AppHeader title={t.cities.title} />
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
       <View style={styles.searchRow}>
         <TextInput
           style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.textPrimary }]}
@@ -154,11 +155,13 @@ export default function CitiesScreen() {
         </View>
       )}
     </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  screen: { flex: 1 },
+  scroll: { flex: 1 },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
   title: { fontSize: fontSize.title, fontWeight: '700' },
   sectionTitle: { fontSize: fontSize.heading, fontWeight: '700', marginTop: spacing.sm },

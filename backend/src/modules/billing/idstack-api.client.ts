@@ -83,10 +83,14 @@ export class IdstackApiClient {
       this.logger.warn(`[IDStack] 下单失败: HTTP ${res.status} ${json?.message ?? ''}`);
       throw new Error(json?.message ?? `下单失败（HTTP ${res.status}）`);
     }
-    const voucher = json.data.voucher ?? null;
+    const rawVoucher = json.data.voucher ?? null;
+    // IDStack 返回 snake_case（share_token / share_url），归一化为 camelCase 对外契约
+    const voucher: IdstackOrderCreateResult['voucher'] = rawVoucher
+      ? { shareToken: rawVoucher.share_token, shareUrl: rawVoucher.share_url }
+      : null;
     const payUrl =
-      voucher?.share_url ??
-      (voucher?.share_token ? `${this.origin}/pay?token=${voucher.share_token}` : null);
+      voucher?.shareUrl ??
+      (voucher?.shareToken ? `${this.origin}/pay?token=${voucher.shareToken}` : null);
     return {
       orderId: json.data.order_id,
       orderNo: json.data.order_no ?? '',

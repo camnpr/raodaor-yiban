@@ -1,17 +1,20 @@
 import { useCallback, useMemo } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../design/theme';
 import { fontSize, spacing } from '../../design/tokens';
 import { useT } from '../../i18n';
 import { useAuthStore } from '../../stores/auth-store';
 import { useCareStore } from '../../stores/care-store';
 import { Button } from '../../components/ui/button';
+import { AppHeader } from '../../components/ui/app-header';
 import { ElderCard } from '../../components/care/elder-card';
 
 /** 亲情守护（M3 核心）：守护中心（子女端）+ 家人视图（长辈端） */
 export default function CareScreen() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const t = useT();
   const router = useRouter();
   const session = useAuthStore((s) => s.session);
@@ -56,26 +59,31 @@ export default function CareScreen() {
 
   if (!session) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Text style={[styles.title, { color: theme.textPrimary }]}>{t.care.title}</Text>
-        <Text style={[styles.empty, { color: theme.textSecondary }]}>{t.care.empty}</Text>
-        <Button title={t.me.login} onPress={() => router.push('/login')} block />
+      <View style={[styles.screen, { backgroundColor: theme.background }]}>
+        <AppHeader title={t.care.title} />
+        <View style={styles.content}>
+          <Text style={[styles.empty, { color: theme.textSecondary }]}>{t.care.empty}</Text>
+          <Button title={t.me.login} onPress={() => router.push('/login')} block />
+        </View>
       </View>
     );
   }
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: theme.background }]}
-      contentContainerStyle={styles.content}
-    >
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.textPrimary }]}>{t.care.title}</Text>
-        <Pressable onPress={() => router.push('/care/invite')} hitSlop={12}>
-          <Text style={[styles.add, { color: theme.brand }]}>＋ {t.care.invite}</Text>
-        </Pressable>
-      </View>
-
+    <View style={[styles.screen, { backgroundColor: theme.background }]}>
+      <AppHeader
+        title={t.care.title}
+        showBack={false}
+        right={
+          <Pressable onPress={() => router.push('/care/invite')} hitSlop={12} accessibilityRole="button">
+            <Text style={[styles.add, { color: theme.brand }]}>＋ {t.care.invite}</Text>
+          </Pressable>
+        }
+      />
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xxl }]}
+      >
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={theme.brand} />
@@ -126,15 +134,15 @@ export default function CareScreen() {
           )}
         </>
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  screen: { flex: 1 },
+  scroll: { flex: 1 },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title: { fontSize: fontSize.title, fontWeight: '700' },
   add: { fontSize: fontSize.heading, fontWeight: '700' },
   section: { fontSize: fontSize.heading, fontWeight: '700', marginTop: spacing.sm },
   center: { alignItems: 'center', gap: spacing.md, paddingVertical: spacing.xxl },

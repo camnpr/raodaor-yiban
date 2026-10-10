@@ -5,6 +5,7 @@ import { useTheme } from '../design/theme';
 import { fontSize, radius, spacing } from '../design/tokens';
 import { useAuthStore } from '../stores/auth-store';
 import { Button } from '../components/ui/button';
+import { AppHeader } from '../components/ui/app-header';
 import { getMyMembership, type MyMembership } from '../lib/membership-api';
 import {
   fetchAirQuality,
@@ -56,10 +57,12 @@ export default function WidgetsScreen() {
 
   if (!session) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Text style={[styles.title, { color: theme.textPrimary }]}>适老小组件</Text>
-        <Text style={[styles.empty, { color: theme.textSecondary }]}>请先登录</Text>
-        <Button title="登录" onPress={() => router.push('/login')} block />
+      <View style={[styles.screen, { backgroundColor: theme.background }]}>
+        <AppHeader title="适老小组件" />
+        <View style={styles.content}>
+          <Text style={[styles.empty, { color: theme.textSecondary }]}>请先登录</Text>
+          <Button title="登录" onPress={() => router.push('/login')} block />
+        </View>
       </View>
     );
   }
@@ -67,12 +70,9 @@ export default function WidgetsScreen() {
   const advancedUnlocked = !!mine?.benefit.advancedWidget;
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: theme.background }]}
-      contentContainerStyle={styles.content}
-    >
-      <Text style={[styles.title, { color: theme.textPrimary }]}>适老小组件</Text>
-
+    <View style={[styles.screen, { backgroundColor: theme.background }]}>
+      <AppHeader title="适老小组件" />
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
       {/* 标准小组件：所有用户可用，基础样式 */}
       <Text style={[styles.section, { color: theme.textPrimary }]}>标准小组件（免费）</Text>
       <WidgetPreview kind="standard" city={city} now={now} aqi={aqi} />
@@ -92,7 +92,8 @@ export default function WidgetsScreen() {
       )}
 
       {loading && !now ? <ActivityIndicator size="large" color={theme.brand} /> : null}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -151,7 +152,8 @@ function WidgetPreview({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  screen: { flex: 1 },
+  scroll: { flex: 1 },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
   title: { fontSize: fontSize.title, fontWeight: '700' },
   empty: { fontSize: fontSize.body, textAlign: 'center' },
