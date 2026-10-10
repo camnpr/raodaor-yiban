@@ -37,6 +37,7 @@ export default function RootLayout() {
       </Head>
       {authHydrated ? (
         <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="portal" />
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="login" />
           <Stack.Screen name="auth/callback" />

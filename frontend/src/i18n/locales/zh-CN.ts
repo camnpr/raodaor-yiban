@@ -197,6 +197,33 @@ export interface Dict {
     centerTitle: string;
     grantItem: string;
   };
+  portal: {
+    /** 产品名（按 locale 区分简繁） */
+    productName: string;
+    heroTagline: string;
+    heroDesc: string;
+    enterApp: string;
+    downloadApp: string;
+    featuresTitle: string;
+    fWeatherTitle: string;
+    fWeatherDesc: string;
+    fGuardTitle: string;
+    fGuardDesc: string;
+    fIndexTitle: string;
+    fIndexDesc: string;
+    fMemberTitle: string;
+    fMemberDesc: string;
+    agingTitle: string;
+    agingLarge: string;
+    agingContrast: string;
+    agingVoice: string;
+    agingSimple: string;
+    downloadTitle: string;
+    downloadDesc: string;
+    footerPrivacy: string;
+    footerMember: string;
+    footerCopy: string;
+  };
 }
 
 const zhCN: Dict = {
@@ -396,6 +423,32 @@ const zhCN: Dict = {
     entry: '平台运营中心',
     centerTitle: '平台运营中心',
     grantItem: '运营补单',
+  },
+  portal: {
+    productName: '绕道儿·颐伴',
+    heroTagline: '适老陪伴，贴心守护每一程',
+    heroDesc: '为父母打造的适老陪伴应用：天气预警、亲情守护、生活指数，重要信息一目了然。',
+    enterApp: '进入应用',
+    downloadApp: '下载 App',
+    featuresTitle: '核心功能',
+    fWeatherTitle: '天气与预警',
+    fWeatherDesc: '实时天气、逐小时与多日预报，极端天气主动预警，守护出行安全。',
+    fGuardTitle: '亲情守护',
+    fGuardDesc: '绑定家人，远程关注父母所在城市的天气与健康状况，关爱不掉线。',
+    fIndexTitle: '生活指数',
+    fIndexDesc: '穿衣、洗车、运动、紫外线、感冒等适老文案化建议，日常安排更安心。',
+    fMemberTitle: '会员权益',
+    fMemberDesc: '解锁不限城市、定时播报、健康周报与 AI 陪伴等贴心增值服务。',
+    agingTitle: '适老化设计',
+    agingLarge: '大字号，三档可调',
+    agingContrast: '高对比配色，护眼舒适',
+    agingVoice: '语音播报，解放双眼',
+    agingSimple: '简洁操作，少即是多',
+    downloadTitle: '下载应用',
+    downloadDesc: '支持 iOS 与 Android，前往应用商店搜索「绕道儿·颐伴」即可免费下载。',
+    footerPrivacy: '隐私政策',
+    footerMember: '会员权益',
+    footerCopy: '© 2026 绕道儿·颐伴 保留所有权利',
   },
 };
 
